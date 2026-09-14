@@ -4,7 +4,7 @@ import { isSupabaseConfigured } from "@/lib/env";
 
 const ERROR_COPY: Record<string, string> = {
   missing_email: "יש להזין כתובת מייל.",
-  missing_env: "חסרים משתני סביבה של Supabase. ראו .env.example.",
+  missing_env: "חסרים משתני סביבה. צרו קובץ מקומי מהדוגמה שבמאגר והגדירו פרויקט.",
   auth_callback: "הקישור לא תקף או שפג תוקפו. נסו שוב.",
 };
 
@@ -42,9 +42,12 @@ export default async function LoginPage({
         ) : null}
 
         {!configured ? (
-          <p className="mt-6 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900">
-            המערכת עדיין בלי מפתחות Supabase. העתיקו את <code>.env.example</code> ל־
-            <code>.env.local</code> והגדירו פרויקט.
+          <p className="mt-6 rounded-lg bg-amber-50 px-3 py-2 text-sm leading-6 text-amber-900">
+            המערכת עדיין בלי מפתחות. צרו קובץ סביבה מקומי מהדוגמה שבמאגר והדביקו אליו את המפתחות
+            מהפרויקט.
+            <span dir="ltr" className="mt-1 block font-mono text-xs">
+              .env.example → .env.local
+            </span>
           </p>
         ) : null}
 
@@ -52,10 +55,11 @@ export default async function LoginPage({
           <label className="block text-sm font-medium">
             מייל
             <input
-              className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 outline-none ring-brand focus:ring-2"
+              className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-start outline-none ring-brand focus:ring-2"
               type="email"
               name="email"
               required
+              dir="ltr"
               autoComplete="email"
               placeholder="shai@geek.partners"
               disabled={!configured}
@@ -64,7 +68,7 @@ export default async function LoginPage({
           <button
             type="submit"
             disabled={!configured}
-            className="w-full rounded-lg bg-brand px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60"
+            className="w-full rounded-lg bg-brand px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-dark disabled:cursor-not-allowed disabled:bg-stone-300 disabled:text-stone-600 disabled:hover:bg-stone-300"
           >
             שלחו קישור התחברות
           </button>
