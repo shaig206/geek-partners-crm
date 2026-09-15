@@ -68,6 +68,7 @@ See [`supabase/import/README.md`](supabase/import/README.md). Start from [`supab
 2. Set the same env vars as `.env.example` in **Project Settings → Environment Variables**.
 3. After the first deploy, add the production URL to Supabase Auth redirect URLs and Site URL.
 4. Optional: point `geek.partners` (or a subdomain) at the Vercel project.
+5. After changing Production env vars (especially `NEXT_PUBLIC_*`), trigger a new Production git deploy so Next.js rebakes them into the client bundle.
 
 ## Approve-and-send flow
 
