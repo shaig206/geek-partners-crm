@@ -1,6 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { getSupabasePublicEnv } from "@/lib/env";
+import { getSupabasePublicEnv, isSupabaseConfigured } from "@/lib/env";
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -12,36 +12,43 @@ export async function updateSession(request: NextRequest) {
     pathname.startsWith("/auth") ||
     pathname.startsWith("/api/webhooks/");
 
-  if (!url || !anonKey) {
-    if (isPublic) return supabaseResponse;
+  const missingEnvRedirect = () => {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = "/login";
     loginUrl.searchParams.set("error", "missing_env");
     return NextResponse.redirect(loginUrl);
+  };
+
+  if (!isSupabaseConfigured() || !url || !anonKey) {
+    return isPublic ? supabaseResponse : missingEnvRedirect();
   }
 
-  const supabase = createServerClient(url, anonKey, {
-    cookies: {
-      getAll() {
-        return request.cookies.getAll();
+  let user: { id: string } | null = null;
+  try {
+    const supabase = createServerClient(url, anonKey, {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(cookiesToSet, headers) {
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
+          supabaseResponse = NextResponse.next({ request });
+          cookiesToSet.forEach(({ name, value, options }) =>
+            supabaseResponse.cookies.set(name, value, options),
+          );
+          Object.entries(headers).forEach(([key, value]) =>
+            supabaseResponse.headers.set(key, value),
+          );
+        },
       },
-      setAll(cookiesToSet, headers) {
-        cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-        supabaseResponse = NextResponse.next({ request });
-        cookiesToSet.forEach(({ name, value, options }) =>
-          supabaseResponse.cookies.set(name, value, options),
-        );
-        Object.entries(headers).forEach(([key, value]) =>
-          supabaseResponse.headers.set(key, value),
-        );
-      },
-    },
-  });
+    });
 
-  // Do not run code between createServerClient and getUser().
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    // Do not run code between createServerClient and getUser().
+    const { data } = await supabase.auth.getUser();
+    user = data.user;
+  } catch {
+    return isPublic ? supabaseResponse : missingEnvRedirect();
+  }
 
   if (!user && !isPublic) {
     const loginUrl = request.nextUrl.clone();
