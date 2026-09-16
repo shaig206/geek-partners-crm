@@ -1,11 +1,13 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { SignOutButton } from "@/components/sign-out-button";
 import { requireUser } from "@/lib/auth";
 import { COMPANY, OWNER_NAME } from "@/lib/constants";
-import { SignOutButton } from "@/components/sign-out-button";
+import { isLocalNoAuth } from "@/lib/env";
 
 export default async function CrmLayout({ children }: { children: ReactNode }) {
   const { user } = await requireUser();
+  const localNoAuth = isLocalNoAuth();
 
   return (
     <div className="flex min-h-full flex-col">
@@ -20,7 +22,13 @@ export default async function CrmLayout({ children }: { children: ReactNode }) {
             <span className="max-w-[14rem] truncate text-muted" title={user.email ?? undefined}>
               {user.email}
             </span>
-            <SignOutButton />
+            {localNoAuth ? (
+              <span className="rounded-md bg-brand-soft px-2 py-1 text-xs font-medium text-brand-dark">
+                מצב מקומי
+              </span>
+            ) : (
+              <SignOutButton />
+            )}
           </div>
         </div>
       </header>

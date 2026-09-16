@@ -8,6 +8,11 @@ export function getSupabasePublicEnv() {
   return { url, anonKey };
 }
 
+/** Local-only login bypass. Never set this on Vercel / production. */
+export function isLocalNoAuth() {
+  return process.env.LOCAL_NO_AUTH?.trim() === "true";
+}
+
 function isHttpUrl(value: string | undefined): value is string {
   if (!value) return false;
   try {
