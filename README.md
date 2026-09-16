@@ -27,6 +27,8 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000). You will be sent to `/login`.
 
+To skip magic-link login on your computer, add `LOCAL_NO_AUTH=true` to `.env.local` and restart `npm run dev`. Root `/` and `/leads` then load without email auth. Leave the flag unset (or `false`) for the normal login flow — do not set it on Vercel.
+
 Required env (also listed in `.env.example`):
 
 | Variable | Where |
@@ -36,6 +38,7 @@ Required env (also listed in `.env.example`):
 | `SUPABASE_SERVICE_ROLE_KEY` | same (service role — **server only**) |
 | `RESEND_API_KEY` | [Resend API keys](https://resend.com/api-keys) |
 | `RESEND_FROM_EMAIL` | verified sender, e.g. `Geek Partners <hello@geek.partners>` |
+| `LOCAL_NO_AUTH` | optional, local only. Set to `true` to skip magic-link login |
 
 Never commit `.env.local`. The service role key and Resend key must not appear in client code.
 

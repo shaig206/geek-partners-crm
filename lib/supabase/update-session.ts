@@ -1,9 +1,14 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { getSupabasePublicEnv, isSupabaseConfigured } from "@/lib/env";
+import { getSupabasePublicEnv, isLocalNoAuth, isSupabaseConfigured } from "@/lib/env";
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
+
+  if (isLocalNoAuth()) {
+    return supabaseResponse;
+  }
+
   const { url, anonKey } = getSupabasePublicEnv();
   const pathname = request.nextUrl.pathname;
 

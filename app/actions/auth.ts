@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
-import { isSupabaseConfigured } from "@/lib/env";
+import { isLocalNoAuth, isSupabaseConfigured } from "@/lib/env";
 
 export async function sendMagicLink(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim();
@@ -38,6 +38,10 @@ export async function sendMagicLink(formData: FormData) {
 }
 
 export async function signOut() {
+  if (isLocalNoAuth()) {
+    redirect("/leads");
+  }
+
   const supabase = await createClient();
   await supabase.auth.signOut();
   redirect("/login");

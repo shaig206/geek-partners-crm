@@ -1,6 +1,7 @@
+import Link from "next/link";
 import { sendMagicLink } from "@/app/actions/auth";
 import { APP_NAME, COMPANY, COMPANY_DOMAIN, OWNER_NAME } from "@/lib/constants";
-import { isSupabaseConfigured } from "@/lib/env";
+import { isLocalNoAuth, isSupabaseConfigured } from "@/lib/env";
 
 const ERROR_COPY: Record<string, string> = {
   missing_email: "יש להזין כתובת מייל.",
@@ -15,6 +16,7 @@ export default async function LoginPage({
 }) {
   const params = await searchParams;
   const configured = isSupabaseConfigured();
+  const localNoAuth = isLocalNoAuth();
   const errorText = params.error
     ? (ERROR_COPY[params.error] ?? decodeURIComponent(params.error))
     : null;
@@ -30,6 +32,15 @@ export default async function LoginPage({
         <p className="mt-6 text-sm leading-6 text-foreground">
           התחברות בקישור קסם למייל. משתמש יחיד מספיק ל־v1.
         </p>
+
+        {localNoAuth ? (
+          <p className="mt-6 rounded-lg bg-brand-soft px-3 py-2 text-sm leading-6 text-brand-dark">
+            מצב מקומי פעיל — אין צורך בהתחברות במייל.{" "}
+            <Link href="/leads" className="font-medium underline underline-offset-2">
+              עברו ללידים
+            </Link>
+          </p>
+        ) : null}
 
         {params.sent === "1" ? (
           <p className="mt-6 rounded-lg bg-brand-soft px-3 py-2 text-sm text-brand-dark">
