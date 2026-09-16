@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { BusinessTypeBadge, LagBadge, StatusBadge } from "@/components/badges";
+import { WhatsAppListLink } from "@/components/whatsapp-list-link";
 import type { Lead } from "@/lib/types";
 import { cn, formatDate } from "@/lib/utils";
 
@@ -44,7 +45,10 @@ export function LeadsTable({ leads }: { leads: Lead[] }) {
                     {lead.priority ? "★ " : ""}
                     {lead.name}
                   </Link>
-                  <div className="text-xs text-muted">{lead.city}</div>
+                  <div className="flex items-center gap-2 text-xs text-muted">
+                    <span>{lead.city}</span>
+                    <WhatsAppListLink lead={lead} />
+                  </div>
                 </td>
                 <td className="px-3 py-2.5 text-muted">{lead.category ?? "—"}</td>
                 <td className="px-3 py-2.5">
