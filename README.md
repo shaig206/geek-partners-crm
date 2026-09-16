@@ -12,6 +12,7 @@ v1 is single-user. Magic-link auth protects every app page. Outreach mail is **n
 - Leads list: search, filter by status / B2C|B2B / lag score, sort
 - Lead detail card with all fields; edit phone, email, notes, status
 - Compose a Hebrew outreach draft from the lead
+- WhatsApp Web helper on lead detail (and a light list link): copy a short Hebrew message and open `wa.me` — no auto-send, needs a usable phone number
 - Approval flow: `draft` → `pending_approval` → **Approve** sends via Resend (server-only) → log send → lead status `נשלח`. Reject with a reason.
 - SQL migration + Hebrew sample leads for Pardes Hanna-Karkur, plus a later import path
 - `POST /api/webhooks/resend-inbound` stub for inbound mail (chat notify is external)
@@ -89,6 +90,12 @@ Nothing in the browser talks to Resend.
    6. Inserts a `sends` row, sets the draft to `sent` or `failed`, and moves the lead to `נשלח`.
 
 If the Resend key is missing, approval returns a Hebrew error and does not pretend to send.
+
+## WhatsApp Web (manual)
+
+On a lead with a phone number, the CRM suggests a short Hebrew WhatsApp message (same warm Geek Partners tone as the email draft, without critique). **העתקה** copies it; **פתיחה ב-WhatsApp Web** opens `https://wa.me/<digits>?text=…` in a new tab. Local Israeli `0…` numbers are normalized to country code `972`. Nothing is sent server-side — use WhatsApp Web on the same computer.
+
+If the phone is missing or cannot be normalized, the block explains that a number is needed and links to the contact editor. The leads list shows a small וואטסאפ link when a number is usable.
 
 ## Inbound webhook
 

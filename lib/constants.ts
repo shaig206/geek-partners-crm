@@ -4,6 +4,8 @@ export const OWNER_NAME_EN = "Shai Gilboa";
 export const COMPANY = "Geek Partners";
 export const COMPANY_DOMAIN = "geek.partners";
 export const DEFAULT_CITY = "פרדס חנה-כרכור";
+/** Default country calling code for wa.me when a local 0… number is stored. */
+export const IL_COUNTRY_CODE = "972";
 
 export const LEAD_STATUSES = [
   "חדש",

@@ -4,6 +4,7 @@ import { ComposeDraftForm } from "@/components/compose-draft-form";
 import { DraftList } from "@/components/draft-list";
 import { BusinessTypeBadge, LagBadge, StatusBadge } from "@/components/badges";
 import { LeadContactForm } from "@/components/lead-contact-form";
+import { WhatsAppSection } from "@/components/whatsapp-section";
 import { requireUser } from "@/lib/auth";
 import type { EmailDraft, Lead, Send } from "@/lib/types";
 import { formatDate, formatDateTime } from "@/lib/utils";
@@ -68,7 +69,7 @@ export default async function LeadDetailPage({
             <Row label="יצירת קשר אחרונה" value={formatDateTime(typedLead.last_contacted_at)} />
             <Row label="הערות חימום" value={typedLead.warming_notes} />
           </dl>
-          <div className="border-t border-border pt-4">
+          <div className="border-t border-border pt-4" id="lead-contact">
             <LeadContactForm lead={typedLead} />
           </div>
         </section>
@@ -77,6 +78,8 @@ export default async function LeadDetailPage({
           <ComposeDraftForm lead={typedLead} />
         </section>
       </div>
+
+      <WhatsAppSection lead={typedLead} />
 
       <section className="space-y-3 rounded-xl border border-border bg-card p-5">
         <h2 className="text-sm font-semibold">טיוטות ואישור</h2>
