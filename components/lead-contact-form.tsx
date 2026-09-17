@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import { updateLeadContact } from "@/app/actions/leads";
-import { LEAD_STATUSES } from "@/lib/constants";
+import { BUSINESS_STATUSES, LEAD_STATUSES } from "@/lib/constants";
 import type { ActionResult } from "@/lib/types";
 import type { Lead } from "@/lib/types";
 
@@ -16,11 +16,25 @@ export function LeadContactForm({ lead }: { lead: Lead }) {
 
   return (
     <form action={action} className="space-y-3">
-      <h2 className="text-sm font-semibold">עריכת קשר / הערות / סטטוס</h2>
+      <h2 className="text-sm font-semibold">עריכת קשר / הערות / סטטוסים</h2>
       <label className="block text-sm">
-        סטטוס
+        סטטוס תקשורת
         <select name="status" defaultValue={lead.status} className={inputClass}>
           {LEAD_STATUSES.map((status) => (
+            <option key={status} value={status}>
+              {status}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="block text-sm">
+        סטטוס עסקי
+        <select
+          name="business_status"
+          defaultValue={lead.business_status}
+          className={inputClass}
+        >
+          {BUSINESS_STATUSES.map((status) => (
             <option key={status} value={status}>
               {status}
             </option>

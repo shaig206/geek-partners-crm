@@ -1,9 +1,9 @@
--- Sample Pardes Hanna-Karkur leads. Run after the init migration.
+-- Sample Pardes Hanna-Karkur leads. Run after schema migrations (including status redesign).
 -- Safe to re-run: skips names that already exist.
 
 insert into public.leads (
   name, website, category, city, business_type, size_signal, lag_score,
-  why_lagging, peer_gap, phone, email, contact_name, status, warming_notes,
+  why_lagging, peer_gap, phone, email, contact_name, status, business_status, warming_notes,
   source_url, priority, found_at
 )
 select * from (values
@@ -20,7 +20,8 @@ select * from (values
     '04-1234567',
     'yuval.bread@example.com',
     'יובל',
-    'נמצא מייל',
+    'חדש',
+    'רלוונטי',
     'שווה שיחת חימום אחרי ביקור בבוקר.',
     'https://www.google.com/maps',
     true,
@@ -39,6 +40,7 @@ select * from (values
     '04-6230011',
     null,
     'אבי',
+    'חדש',
     'חדש',
     'לבקש כרטיס ביקור ולחפש מייל בגוגל.',
     null,
@@ -59,6 +61,7 @@ select * from (values
     'clinic@cohen-dental.example',
     'ליאת כהן',
     'חדש',
+    'חדש',
     null,
     'https://www.facebook.com',
     false,
@@ -77,7 +80,8 @@ select * from (values
     '052-1112233',
     'nirit.yoga@example.com',
     'נירית',
-    'נמצא מייל',
+    'נשלחה הודעה',
+    'רלוונטי',
     'אוהבת תוכן אישי — הטיוטה צריכה להיות חמה ולא מכירתית.',
     null,
     false,
@@ -96,6 +100,7 @@ select * from (values
     '04-6274410',
     'office@gal-amit.example',
     'עו״ד גל',
+    'חדש',
     'חדש',
     'B2B — לדבר על לידים מגוגל, לא על אינסטגרם.',
     null,
@@ -116,6 +121,7 @@ select * from (values
     'nitzanim.gan@example.com',
     'מיכל',
     'חדש',
+    'חדש',
     'עונת הרשמות מתקרבת.',
     null,
     true,
@@ -134,7 +140,8 @@ select * from (values
     '04-6221788',
     'hello@hazayit.example',
     'רן',
-    'נמצא מייל',
+    'אין מענה פעם אחת',
+    'רלוונטי',
     null,
     'https://www.instagram.com',
     false,
@@ -154,6 +161,7 @@ select * from (values
     'sales@emek-clean.example',
     'דוד',
     'חדש',
+    'לא רלוונטי',
     'פיגור נמוך יחסית — רק אם יש זמן.',
     null,
     false,
@@ -173,6 +181,7 @@ select * from (values
     null,
     'מיכל לוי',
     'חדש',
+    'חדש',
     'לבקש מייל בביקור.',
     null,
     false,
@@ -191,7 +200,8 @@ select * from (values
     '04-6291122',
     'studio@karkur-wood.example',
     'יוסי',
-    'נמצא מייל',
+    'חדש',
+    'בפגישה או שיחה',
     'אפשר להציע תיק עבודות מינימלי.',
     null,
     true,
@@ -199,7 +209,7 @@ select * from (values
   )
 ) as seed(
   name, website, category, city, business_type, size_signal, lag_score,
-  why_lagging, peer_gap, phone, email, contact_name, status, warming_notes,
+  why_lagging, peer_gap, phone, email, contact_name, status, business_status, warming_notes,
   source_url, priority, found_at
 )
 where not exists (

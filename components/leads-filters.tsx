@@ -1,7 +1,14 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { BUSINESS_TYPES, LAG_SCORES, LEAD_STATUSES, SORT_OPTIONS } from "@/lib/constants";
+import {
+  BUSINESS_STATUSES,
+  BUSINESS_TYPES,
+  LAG_SCORES,
+  LEAD_STATUSES,
+  SORT_OPTIONS,
+} from "@/lib/constants";
+import { CHANNEL_BUCKETS, CHANNEL_BUCKET_LABELS } from "@/lib/channels";
 
 export function LeadsFilters() {
   const router = useRouter();
@@ -21,13 +28,15 @@ export function LeadsFilters() {
   return (
     <form
       key={searchParams.toString()}
-      className="grid gap-3 rounded-xl border border-border bg-card p-4 sm:grid-cols-2 lg:grid-cols-5"
+      className="grid gap-3 rounded-xl border border-border bg-card p-4 sm:grid-cols-2 lg:grid-cols-4"
       onSubmit={(event) => {
         event.preventDefault();
         const form = new FormData(event.currentTarget);
         update({
           q: String(form.get("q") ?? "").trim(),
           status: String(form.get("status") ?? ""),
+          business_status: String(form.get("business_status") ?? ""),
+          channel: String(form.get("channel") ?? ""),
           type: String(form.get("type") ?? ""),
           lag: String(form.get("lag") ?? ""),
           sort: String(form.get("sort") ?? ""),
@@ -45,7 +54,7 @@ export function LeadsFilters() {
         />
       </label>
       <label className="text-sm">
-        סטטוס
+        סטטוס תקשורת
         <select
           name="status"
           defaultValue={searchParams.get("status") ?? ""}
@@ -55,6 +64,36 @@ export function LeadsFilters() {
           {LEAD_STATUSES.map((status) => (
             <option key={status} value={status}>
               {status}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="text-sm">
+        סטטוס עסקי
+        <select
+          name="business_status"
+          defaultValue={searchParams.get("business_status") ?? ""}
+          className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+        >
+          <option value="">הכול</option>
+          {BUSINESS_STATUSES.map((status) => (
+            <option key={status} value={status}>
+              {status}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="text-sm">
+        ערוץ
+        <select
+          name="channel"
+          defaultValue={searchParams.get("channel") ?? ""}
+          className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+        >
+          <option value="">הכול</option>
+          {CHANNEL_BUCKETS.map((bucket) => (
+            <option key={bucket} value={bucket}>
+              {CHANNEL_BUCKET_LABELS[bucket]}
             </option>
           ))}
         </select>

@@ -2,6 +2,7 @@ import {
   CRM_TIMEZONE,
   FOLLOW_UP_DAYS_AFTER_SEND,
   FOLLOW_UP_WAITING_STATUSES,
+  MARK_SENT_STATUS,
   type OutreachChannel,
 } from "@/lib/constants";
 import type { Lead } from "@/lib/types";
@@ -87,7 +88,7 @@ export function isWaitingFollowUpStatus(status: string): boolean {
 
 /**
  * True when follow_up_at falls on today or earlier (Asia/Jerusalem civil date)
- * and the lead is still waiting (status נשלח).
+ * and the lead is still waiting (communication status נשלחה הודעה / אין מענה).
  */
 export function needsFollowUp(
   lead: Pick<Lead, "follow_up_at" | "status">,
@@ -135,7 +136,7 @@ export function markSentPayload(options: {
 }) {
   const now = options.now ?? new Date();
   return {
-    status: "נשלח" as const,
+    status: MARK_SENT_STATUS,
     last_contacted_at: now.toISOString(),
     follow_up_at: computeFollowUpAt(now).toISOString(),
     warming_notes: appendSentNote(options.warmingNotes, options.channel, now),

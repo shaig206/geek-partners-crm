@@ -40,10 +40,6 @@ export async function createOutreachDraft(
 
   if (error) return { ok: false, error: error.message };
 
-  if (submitForApproval) {
-    await supabase.from("leads").update({ status: "טיוטה ממתינה" }).eq("id", leadId);
-  }
-
   revalidatePath(`/leads/${leadId}`);
   revalidatePath("/leads");
   return {
@@ -73,7 +69,6 @@ export async function submitDraftForApproval(draftId: string): Promise<ActionRes
 
   if (updateError) return { ok: false, error: updateError.message };
 
-  await supabase.from("leads").update({ status: "טיוטה ממתינה" }).eq("id", draft.lead_id);
   revalidatePath(`/leads/${draft.lead_id}`);
   revalidatePath("/leads");
   return { ok: true, message: "ממתין לאישור" };

@@ -1,4 +1,10 @@
-import type { BusinessType, DraftStatus, LeadStatus, SendStatus } from "@/lib/constants";
+import type {
+  BusinessStatus,
+  BusinessType,
+  DraftStatus,
+  LeadStatus,
+  SendStatus,
+} from "@/lib/constants";
 
 export type Lead = {
   id: string;
@@ -15,6 +21,7 @@ export type Lead = {
   email: string | null;
   contact_name: string | null;
   status: LeadStatus;
+  business_status: BusinessStatus;
   warming_notes: string | null;
   source_url: string | null;
   priority: boolean;

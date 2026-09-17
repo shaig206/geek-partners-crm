@@ -2,7 +2,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ComposeDraftForm } from "@/components/compose-draft-form";
 import { DraftList } from "@/components/draft-list";
-import { BusinessTypeBadge, LagBadge, NeedsFollowUpBadge, StatusBadge } from "@/components/badges";
+import {
+  BusinessStatusBadge,
+  BusinessTypeBadge,
+  ChannelBadges,
+  LagBadge,
+  NeedsFollowUpBadge,
+  StatusBadge,
+} from "@/components/badges";
 import { LeadContactForm } from "@/components/lead-contact-form";
 import { MarkLeadSentButton } from "@/components/mark-lead-sent-button";
 import { WhatsAppSection } from "@/components/whatsapp-section";
@@ -49,6 +56,8 @@ export default async function LeadDetailPage({
             {typedLead.name}
           </h1>
           <StatusBadge status={typedLead.status} />
+          <BusinessStatusBadge status={typedLead.business_status} />
+          <ChannelBadges phone={typedLead.phone} email={typedLead.email} />
           <BusinessTypeBadge type={typedLead.business_type} />
           <LagBadge score={typedLead.lag_score} />
           {needsFollowUp(typedLead) ? <NeedsFollowUpBadge /> : null}
@@ -65,6 +74,8 @@ export default async function LeadDetailPage({
             <Row label="גודל" value={typedLead.size_signal} />
             <Row label="למה מפגר" value={typedLead.why_lagging} />
             <Row label="פער מול מתחרים" value={typedLead.peer_gap} />
+            <Row label="סטטוס תקשורת" value={typedLead.status} />
+            <Row label="סטטוס עסקי" value={typedLead.business_status} />
             <Row label="טלפון" value={typedLead.phone} />
             <Row label="מייל" value={typedLead.email} />
             <Row label="איש קשר" value={typedLead.contact_name} />
@@ -87,7 +98,7 @@ export default async function LeadDetailPage({
           <ComposeDraftForm lead={typedLead} />
           <div className="border-t border-border pt-4">
             <p className="mb-2 text-xs text-muted">
-              אחרי שליחת מייל (גם מחוץ למערכת) — סמנו כאן. הסטטוס יהיה נשלח והמעקב הראשון ייקבע לעוד{" "}
+              אחרי שליחת מייל (גם מחוץ למערכת) — סמנו כאן. סטטוס התקשורת יהיה נשלחה הודעה והמעקב הראשון ייקבע לעוד{" "}
               {FOLLOW_UP_DAYS_AFTER_SEND} ימים.
             </p>
             <MarkLeadSentButton leadId={typedLead.id} channel="email" label="סימנתי שנשלח במייל" />

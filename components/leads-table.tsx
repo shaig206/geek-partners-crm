@@ -1,5 +1,12 @@
 import Link from "next/link";
-import { BusinessTypeBadge, LagBadge, NeedsFollowUpBadge, StatusBadge } from "@/components/badges";
+import {
+  BusinessStatusBadge,
+  BusinessTypeBadge,
+  ChannelBadges,
+  LagBadge,
+  NeedsFollowUpBadge,
+  StatusBadge,
+} from "@/components/badges";
 import { WhatsAppListLink } from "@/components/whatsapp-list-link";
 import { needsFollowUp } from "@/lib/follow-up";
 import type { Lead } from "@/lib/types";
@@ -24,7 +31,9 @@ export function LeadsTable({ leads }: { leads: Lead[] }) {
             <th className="px-3 py-2 font-medium">קטגוריה</th>
             <th className="px-3 py-2 font-medium">סוג</th>
             <th className="px-3 py-2 font-medium">פיגור</th>
-            <th className="px-3 py-2 font-medium">סטטוס</th>
+            <th className="px-3 py-2 font-medium">סטטוס תקשורת</th>
+            <th className="px-3 py-2 font-medium">סטטוס עסקי</th>
+            <th className="px-3 py-2 font-medium">ערוץ</th>
             <th className="px-3 py-2 font-medium">מעקב</th>
             <th className="px-3 py-2 font-medium">מייל</th>
             <th className="px-3 py-2 font-medium">נמצא</th>
@@ -63,6 +72,12 @@ export function LeadsTable({ leads }: { leads: Lead[] }) {
                 </td>
                 <td className="px-3 py-2.5">
                   <StatusBadge status={lead.status} />
+                </td>
+                <td className="px-3 py-2.5">
+                  <BusinessStatusBadge status={lead.business_status} />
+                </td>
+                <td className="px-3 py-2.5">
+                  <ChannelBadges phone={lead.phone} email={lead.email} />
                 </td>
                 <td className="px-3 py-2.5">
                   <div className="space-y-1">

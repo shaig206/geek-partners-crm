@@ -1,5 +1,11 @@
 import { createLead } from "@/app/actions/leads";
-import { BUSINESS_TYPES, DEFAULT_CITY, LAG_SCORES, LEAD_STATUSES } from "@/lib/constants";
+import {
+  BUSINESS_STATUSES,
+  BUSINESS_TYPES,
+  DEFAULT_CITY,
+  LAG_SCORES,
+  LEAD_STATUSES,
+} from "@/lib/constants";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -58,9 +64,19 @@ export default async function NewLeadPage({
             </select>
           </label>
           <label className="text-sm">
-            סטטוס
+            סטטוס תקשורת
             <select name="status" defaultValue="חדש" className={inputClass}>
               {LEAD_STATUSES.map((status) => (
+                <option key={status} value={status}>
+                  {status}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="text-sm">
+            סטטוס עסקי
+            <select name="business_status" defaultValue="חדש" className={inputClass}>
+              {BUSINESS_STATUSES.map((status) => (
                 <option key={status} value={status}>
                   {status}
                 </option>
