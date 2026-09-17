@@ -11,7 +11,7 @@ export function WhatsAppListLink({ lead }: { lead: Lead }) {
     <a
       href={buildWhatsAppWebUrl(digits, composeWhatsAppMessage(lead))}
       target="_blank"
-      rel="noreferrer"
+      rel="noopener noreferrer"
       className="text-xs text-brand hover:underline"
       title="פתיחה ב-WhatsApp Web"
     >
