@@ -20,6 +20,7 @@ export type Lead = {
   priority: boolean;
   found_at: string | null;
   last_contacted_at: string | null;
+  follow_up_at: string | null;
   created_at: string;
   updated_at: string;
 };

@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { BusinessTypeBadge, LagBadge, StatusBadge } from "@/components/badges";
+import { BusinessTypeBadge, LagBadge, NeedsFollowUpBadge, StatusBadge } from "@/components/badges";
 import { WhatsAppListLink } from "@/components/whatsapp-list-link";
+import { needsFollowUp } from "@/lib/follow-up";
 import type { Lead } from "@/lib/types";
 import { cn, formatDate } from "@/lib/utils";
 
@@ -24,6 +25,7 @@ export function LeadsTable({ leads }: { leads: Lead[] }) {
             <th className="px-3 py-2 font-medium">סוג</th>
             <th className="px-3 py-2 font-medium">פיגור</th>
             <th className="px-3 py-2 font-medium">סטטוס</th>
+            <th className="px-3 py-2 font-medium">מעקב</th>
             <th className="px-3 py-2 font-medium">מייל</th>
             <th className="px-3 py-2 font-medium">נמצא</th>
           </tr>
@@ -31,12 +33,14 @@ export function LeadsTable({ leads }: { leads: Lead[] }) {
         <tbody>
           {leads.map((lead) => {
             const highLag = (lead.lag_score ?? 0) >= 4;
+            const dueFollowUp = needsFollowUp(lead);
             return (
               <tr
                 key={lead.id}
                 className={cn(
                   "border-b border-border last:border-0 hover:bg-background/80",
-                  highLag && "bg-orange-50/60",
+                  dueFollowUp && "bg-amber-50/80",
+                  highLag && !dueFollowUp && "bg-orange-50/60",
                   lead.business_type === "B2C" && "border-s-4 border-s-brand",
                 )}
               >
@@ -59,6 +63,12 @@ export function LeadsTable({ leads }: { leads: Lead[] }) {
                 </td>
                 <td className="px-3 py-2.5">
                   <StatusBadge status={lead.status} />
+                </td>
+                <td className="px-3 py-2.5">
+                  <div className="space-y-1">
+                    {needsFollowUp(lead) ? <NeedsFollowUpBadge /> : null}
+                    <span className="text-muted">{formatDate(lead.follow_up_at)}</span>
+                  </div>
                 </td>
                 <td className="px-3 py-2.5 text-muted">{lead.email ?? "—"}</td>
                 <td className="px-3 py-2.5 text-muted">{formatDate(lead.found_at)}</td>

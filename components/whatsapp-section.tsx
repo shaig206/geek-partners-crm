@@ -1,4 +1,6 @@
+import { MarkLeadSentButton } from "@/components/mark-lead-sent-button";
 import { WhatsAppOutreach } from "@/components/whatsapp-outreach";
+import { FOLLOW_UP_DAYS_AFTER_SEND } from "@/lib/constants";
 import type { Lead } from "@/lib/types";
 import { composeWhatsAppMessage, normalizePhoneForWaMe } from "@/lib/whatsapp";
 
@@ -19,6 +21,13 @@ export function WhatsAppSection({ lead }: { lead: Lead }) {
           </a>
         </p>
       )}
+      <div className="border-t border-border pt-3">
+        <p className="mb-2 text-xs text-muted">
+          אחרי שליחה ידנית — סמנו כאן. הסטטוס יהיה נשלח והמעקב הראשון ייקבע לעוד {FOLLOW_UP_DAYS_AFTER_SEND}{" "}
+          ימים.
+        </p>
+        <MarkLeadSentButton leadId={lead.id} channel="whatsapp" label="סימנתי שנשלח בוואטסאפ" />
+      </div>
     </section>
   );
 }

@@ -6,11 +6,17 @@ import { requireUser } from "@/lib/auth";
 import {
   BUSINESS_TYPES,
   DEFAULT_CITY,
+  FOLLOW_UP_DAYS_AFTER_SEND,
   LEAD_STATUSES,
+  OUTREACH_CHANNELS,
   type BusinessType,
   type LeadStatus,
+  type OutreachChannel,
 } from "@/lib/constants";
+import { markSentPayload } from "@/lib/follow-up";
 import type { ActionResult } from "@/lib/types";
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function asString(formData: FormData, key: string) {
   const value = formData.get(key);
@@ -118,4 +124,45 @@ export async function updateLeadStatus(
   revalidatePath(`/leads/${leadId}`);
   revalidatePath("/leads");
   return { ok: true };
+}
+
+function parseChannel(channel: string | undefined): OutreachChannel {
+  if (channel && (OUTREACH_CHANNELS as readonly string[]).includes(channel)) {
+    return channel as OutreachChannel;
+  }
+  return "other";
+}
+
+/**
+ * After manual WhatsApp / email send: status נשלח, stamp last contact,
+ * schedule first follow-up in FOLLOW_UP_DAYS_AFTER_SEND calendar days
+ * (UTC date + N days, same clock time), and append a short Hebrew note.
+ */
+export async function markLeadSent(
+  leadId: string,
+  channel?: OutreachChannel,
+): Promise<ActionResult> {
+  const { supabase } = await requireUser();
+  if (!UUID_RE.test(leadId)) return { ok: false, error: "מזהה ליד לא תקין" };
+
+  const parsedChannel = parseChannel(channel);
+  const { data: lead, error: loadError } = await supabase
+    .from("leads")
+    .select("id, warming_notes")
+    .eq("id", leadId)
+    .maybeSingle();
+
+  if (loadError) return { ok: false, error: loadError.message };
+  if (!lead) return { ok: false, error: "הליד לא נמצא" };
+
+  const { error } = await supabase
+    .from("leads")
+    .update(markSentPayload({ channel: parsedChannel, warmingNotes: lead.warming_notes }))
+    .eq("id", leadId);
+
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath(`/leads/${leadId}`);
+  revalidatePath("/leads");
+  return { ok: true, message: `סומן כנשלח. מעקב ראשון בעוד ${FOLLOW_UP_DAYS_AFTER_SEND} ימים.` };
 }

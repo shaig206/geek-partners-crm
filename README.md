@@ -9,11 +9,12 @@ v1 is single-user. Magic-link auth protects every app page. Outreach mail is **n
 ## Features
 
 - Magic-link login (Supabase Auth)
-- Leads list: search, filter by status / B2C|B2B / lag score, sort
-- Lead detail card with all fields; edit phone, email, notes, status
+- Leads list: search, filter by status / B2C|B2B / lag score / **צריך מעקב**, sort (including follow-up soonest)
+- Lead detail card with all fields; edit phone, email, notes, status (`נשלח` / `נענה` / `אין מענה` / `לא רלוונטי` included)
+- After sending WhatsApp or email, **סימנתי שנשלח** sets status `נשלח`, stamps `last_contacted_at`, and schedules `follow_up_at` 3 calendar days later
 - Compose a Hebrew outreach draft from the lead
 - WhatsApp Web helper on lead detail (and a light list link): copy a short Hebrew message and open `wa.me` — no auto-send, needs a usable phone number
-- Approval flow: `draft` → `pending_approval` → **Approve** sends via Resend (server-only) → log send → lead status `נשלח`. Reject with a reason.
+- Approval flow: `draft` → `pending_approval` → **Approve** sends via Resend (server-only) → log send → lead status `נשלח` + follow-up in 3 days. Reject with a reason.
 - SQL migration + Hebrew sample leads for Pardes Hanna-Karkur, plus a later import path
 - `POST /api/webhooks/resend-inbound` stub for inbound mail (chat notify is external)
 
@@ -56,7 +57,9 @@ npm run typecheck
 3. **Authentication → URL configuration**
    - Site URL: `http://localhost:3000` locally, then your Vercel URL in production.
    - Redirect URLs: `http://localhost:3000/auth/callback` and `https://YOUR_DOMAIN/auth/callback`.
-4. Run [`supabase/migrations/20260914120000_init.sql`](supabase/migrations/20260914120000_init.sql) in the SQL editor (or `supabase db push` if you use the CLI).
+4. Apply schema migrations (SQL editor or `supabase db push`):
+   1. [`supabase/migrations/20260914120000_init.sql`](supabase/migrations/20260914120000_init.sql) — tables, RLS, indexes
+   2. [`supabase/migrations/20260917120000_leads_follow_up_at.sql`](supabase/migrations/20260917120000_leads_follow_up_at.sql) — adds `leads.follow_up_at` (nullable `timestamptz`). Safe to re-run (`IF NOT EXISTS`). Does not change `last_contacted_at`.
 5. Run [`supabase/seed.sql`](supabase/seed.sql) for the sample Pardes Hanna-Karkur leads.
 6. Invite / send a magic link to Shai’s email.
 
@@ -87,7 +90,7 @@ Nothing in the browser talks to Resend.
    3. **Aborts unless `status` is still `pending_approval`.**
    4. Atomically claims the row (`pending_approval` → `approved`). If zero rows update, it does not send.
    5. Calls Resend with `RESEND_API_KEY` / `RESEND_FROM_EMAIL`.
-   6. Inserts a `sends` row, sets the draft to `sent` or `failed`, and moves the lead to `נשלח`.
+   6. Inserts a `sends` row, sets the draft to `sent` or `failed`, and moves the lead to `נשלח` with `last_contacted_at` and `follow_up_at` (now + 3 calendar days).
 
 If the Resend key is missing, approval returns a Hebrew error and does not pretend to send.
 
@@ -96,6 +99,25 @@ If the Resend key is missing, approval returns a Hebrew error and does not prete
 On a lead with a phone number, the CRM suggests a short Hebrew WhatsApp message (same warm Geek Partners tone as the email draft, without critique). **העתקה** copies it; **פתיחה ב-WhatsApp Web** opens `https://wa.me/<digits>?text=…` in a new tab. Local Israeli `0…` numbers are normalized to country code `972`. Nothing is sent server-side — use WhatsApp Web on the same computer.
 
 If the phone is missing or cannot be normalized, the block explains that a number is needed and links to the contact editor. The leads list shows a small וואטסאפ link when a number is usable.
+
+After you actually send in WhatsApp Web, click **סימנתי שנשלח בוואטסאפ**. That is the CRM write — nothing is posted to WhatsApp from the server.
+
+## Mark sent and 3-day follow-up
+
+WhatsApp and email are sent outside the “mark sent” click (WhatsApp Web, Resend approval, or a mail client). Then:
+
+1. On the lead, click **סימנתי שנשלח בוואטסאפ** or **סימנתי שנשלח במייל**.
+2. Server action `markLeadSent` (also used after Resend approve-and-send):
+   - `status` → `נשלח`
+   - `last_contacted_at` → now
+   - `follow_up_at` → now + **3 calendar days** (`FOLLOW_UP_DAYS_AFTER_SEND` in `lib/constants.ts`). Calendar days here means the UTC date is advanced by 3, keeping the same clock time. This is not business-day skipping.
+   - `warming_notes` gets a short Hebrew line such as `סומן כנשלח בוואטסאפ (17.09.2026)`.
+3. The lead card shows **מעקב הבא** when `follow_up_at` is set.
+4. Later, change status in the contact form to `נענה`, `אין מענה`, or `לא רלוונטי` (already in `LEAD_STATUSES`).
+
+**צריך מעקב** on the list (badge + filter) when `follow_up_at` is today or earlier in `Asia/Jerusalem` and status is still `נשלח`. Sort option **מעקב מוקדם תחילה** orders by `follow_up_at` ascending (nulls last).
+
+`LOCAL_NO_AUTH=true` still works for this flow; `markLeadSent` goes through `requireUser()`.
 
 ## Inbound webhook
 

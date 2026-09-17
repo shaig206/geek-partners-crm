@@ -20,6 +20,7 @@ export function LeadsFilters() {
 
   return (
     <form
+      key={searchParams.toString()}
       className="grid gap-3 rounded-xl border border-border bg-card p-4 sm:grid-cols-2 lg:grid-cols-5"
       onSubmit={(event) => {
         event.preventDefault();
@@ -30,6 +31,7 @@ export function LeadsFilters() {
           type: String(form.get("type") ?? ""),
           lag: String(form.get("lag") ?? ""),
           sort: String(form.get("sort") ?? ""),
+          follow_up: form.get("follow_up") === "1" ? "1" : "",
         });
       }}
     >
@@ -87,6 +89,19 @@ export function LeadsFilters() {
           ))}
         </select>
       </label>
+      <label className="text-sm">
+        מעקב
+        <span className="mt-1 flex min-h-[38px] items-center gap-2 rounded-lg border border-border bg-background px-3 text-sm">
+          <input
+            type="checkbox"
+            name="follow_up"
+            value="1"
+            defaultChecked={searchParams.get("follow_up") === "1"}
+            className="size-4 accent-brand"
+          />
+          צריך מעקב
+        </span>
+      </label>
       <label className="text-sm lg:col-span-2">
         מיון
         <select
@@ -101,7 +116,7 @@ export function LeadsFilters() {
           ))}
         </select>
       </label>
-      <div className="flex items-end gap-2 sm:col-span-2 lg:col-span-3">
+      <div className="flex items-end gap-2 sm:col-span-2 lg:col-span-2">
         <button
           type="submit"
           className="rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-dark"

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { Resend } from "resend";
 import { requireUser } from "@/lib/auth";
+import { markSentPayload } from "@/lib/follow-up";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { ActionResult } from "@/lib/types";
 
@@ -191,9 +192,22 @@ export async function approveAndSendDraft(draftId: string): Promise<ActionResult
   });
 
   await admin.from("email_drafts").update({ status: "sent" }).eq("id", draft.id);
+
+  const { data: leadRow } = await admin
+    .from("leads")
+    .select("warming_notes")
+    .eq("id", draft.lead_id)
+    .maybeSingle();
+
   await admin
     .from("leads")
-    .update({ status: "נשלח", last_contacted_at: now })
+    .update(
+      markSentPayload({
+        now: new Date(now),
+        channel: "email",
+        warmingNotes: leadRow?.warming_notes ?? null,
+      }),
+    )
     .eq("id", draft.lead_id);
 
   revalidatePath(`/leads/${draft.lead_id}`);
