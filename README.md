@@ -27,7 +27,7 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). You will be sent to `/login`.
+Open [http://localhost:3000](http://localhost:3000) or [http://127.0.0.1:3000](http://127.0.0.1:3000). Both work in local development (`allowedDevOrigins` in `next.config.ts` so Next 16 HMR hydrates either hostname). You will be sent to `/login`.
 
 To skip magic-link login on your computer, add `LOCAL_NO_AUTH=true` to `.env.local` and restart `npm run dev`. Root `/` and `/leads` then load without email auth. Leave the flag unset (or `false`) for the normal login flow — do not set it on Vercel.
 
@@ -97,7 +97,7 @@ If the Resend key is missing, approval returns a Hebrew error and does not prete
 
 ## WhatsApp Web (manual)
 
-On a lead with a phone number, the CRM suggests a short Hebrew WhatsApp message (same warm Geek Partners tone as the email draft, without critique). **העתקה** copies it; **פתיחה ב-WhatsApp Web** opens `https://wa.me/<digits>?text=…` in a new tab. Local Israeli `0…` numbers are normalized to country code `972`. Nothing is sent server-side — use WhatsApp Web on the same computer.
+On a lead with a phone number, the CRM suggests a short Hebrew WhatsApp message (same warm Geek Partners tone as the email draft, without critique). **העתקה** copies it (clipboard API, with an `execCommand` fallback if the context is not secure). **פתיחה ב-WhatsApp Web** is a real `wa.me` link (`target="_blank"`) so it does not depend on `window.open` / popup blockers. Local Israeli `0…` numbers are normalized to country code `972`. Nothing is sent server-side — use WhatsApp Web on the same computer.
 
 If the phone is missing, cannot be normalized, or is a landline (not Israeli mobile `05…`), the block explains that a mobile number is needed and links to the contact editor. The leads list shows a small וואטסאפ link only when the number is a 05-mobile.
 
