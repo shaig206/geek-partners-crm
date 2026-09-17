@@ -1,11 +1,15 @@
 import { DEFAULT_CITY, IL_COUNTRY_CODE, OWNER_NAME, OWNER_ROLE } from "@/lib/constants";
+import { buildOutreachPlaceholders, renderOutreachTemplate } from "@/lib/templates";
 import type { Lead } from "@/lib/types";
 import { greetingFromContact } from "@/lib/utils";
 
 const E164_MIN = 10;
 const E164_MAX = 15;
 
-export type WhatsAppLeadFields = Pick<Lead, "name" | "category" | "city" | "website" | "contact_name">;
+export type WhatsAppLeadFields = Pick<
+  Lead,
+  "name" | "category" | "city" | "website" | "contact_name" | "why_lagging" | "peer_gap"
+>;
 
 /**
  * Normalize a stored phone into international digits for https://wa.me/<digits>.
@@ -40,8 +44,18 @@ export function normalizePhoneForWaMe(phone: string | null | undefined): string 
   return digits;
 }
 
-/** Short Hebrew WhatsApp opener — same first-name + developer intro as email, without critique. */
-export function composeWhatsAppMessage(lead: WhatsAppLeadFields): string {
+/**
+ * WhatsApp opener from the default template body, or the hardcoded short
+ * Hebrew opener when no template is stored.
+ */
+export function composeWhatsAppMessage(
+  lead: WhatsAppLeadFields,
+  templateBody?: string | null,
+): string {
+  if (templateBody?.trim()) {
+    return renderOutreachTemplate(templateBody, buildOutreachPlaceholders(lead));
+  }
+
   const greeting = greetingFromContact(lead.contact_name);
   const city = lead.city?.trim() || DEFAULT_CITY;
   const category = lead.category?.trim();

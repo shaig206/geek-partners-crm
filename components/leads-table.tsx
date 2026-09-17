@@ -12,7 +12,13 @@ import { needsFollowUp } from "@/lib/follow-up";
 import type { Lead } from "@/lib/types";
 import { cn, formatDate } from "@/lib/utils";
 
-export function LeadsTable({ leads }: { leads: Lead[] }) {
+export function LeadsTable({
+  leads,
+  whatsappTemplateBody,
+}: {
+  leads: Lead[];
+  whatsappTemplateBody?: string | null;
+}) {
   if (leads.length === 0) {
     return (
       <div className="rounded-xl border border-dashed border-border bg-card px-6 py-16 text-center">
@@ -60,7 +66,7 @@ export function LeadsTable({ leads }: { leads: Lead[] }) {
                   </Link>
                   <div className="flex items-center gap-2 text-xs text-muted">
                     <span>{lead.city}</span>
-                    <WhatsAppListLink lead={lead} />
+                    <WhatsAppListLink lead={lead} templateBody={whatsappTemplateBody} />
                   </div>
                 </td>
                 <td className="px-3 py-2.5 text-muted">{lead.category ?? "—"}</td>

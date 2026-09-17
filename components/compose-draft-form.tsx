@@ -1,14 +1,21 @@
 "use client";
 
 import { useActionState } from "react";
+import Link from "next/link";
 import { createOutreachDraft } from "@/app/actions/drafts";
-import { composeOutreach } from "@/lib/utils";
 import type { ActionResult, Lead } from "@/lib/types";
 
 const initial: ActionResult | null = null;
 
-export function ComposeDraftForm({ lead }: { lead: Lead }) {
-  const draft = composeOutreach(lead);
+export function ComposeDraftForm({
+  lead,
+  subject,
+  body,
+}: {
+  lead: Lead;
+  subject: string;
+  body: string;
+}) {
   const [state, action, pending] = useActionState(
     async (_prev: ActionResult | null, formData: FormData) => createOutreachDraft(lead.id, formData),
     initial,
@@ -18,7 +25,12 @@ export function ComposeDraftForm({ lead }: { lead: Lead }) {
     <form action={action} className="space-y-3">
       <h2 className="text-sm font-semibold">טיוטת פנייה בעברית</h2>
       <p className="text-xs text-muted">
-        נשלח רק אחרי אישור. שמירה רגילה משאירה טיוטה; סימון ״שלח לאישור״ מעביר ל־pending_approval.
+        הנוסח מגיע מ
+        <Link href="/templates" className="text-brand hover:underline">
+          תבנית ברירת המחדל
+        </Link>
+        {" "}
+        + פרטי הליד. נשלח רק אחרי אישור. שמירה רגילה משאירה טיוטה; סימון ״שלח לאישור״ מעביר ל־pending_approval.
       </p>
       <label className="block text-sm">
         אל (מייל)
@@ -36,11 +48,11 @@ export function ComposeDraftForm({ lead }: { lead: Lead }) {
       </label>
       <label className="block text-sm">
         נושא
-        <input name="subject" required defaultValue={draft.subject} className={inputClass} />
+        <input name="subject" required defaultValue={subject} className={inputClass} />
       </label>
       <label className="block text-sm">
         גוף
-        <textarea name="body" required rows={12} defaultValue={draft.body} className={inputClass} />
+        <textarea name="body" required rows={16} defaultValue={body} className={inputClass} />
       </label>
       <label className="flex items-center gap-2 text-sm">
         <input type="checkbox" name="submit_for_approval" className="size-4 accent-brand" defaultChecked />

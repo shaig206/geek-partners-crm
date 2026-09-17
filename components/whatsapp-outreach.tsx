@@ -44,7 +44,7 @@ export function WhatsAppOutreach({
       <label className="block text-sm">
         הודעה מוצעת
         <textarea
-          rows={6}
+          rows={12}
           value={message}
           onChange={(event) => setMessage(event.target.value)}
           className={inputClass}
