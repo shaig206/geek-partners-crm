@@ -11,7 +11,8 @@ import {
   type SortValue,
 } from "@/lib/constants";
 import { startOfTomorrow } from "@/lib/follow-up";
-import type { Lead } from "@/lib/types";
+import { pickDefaultTemplate } from "@/lib/templates";
+import type { Lead, OutreachTemplate } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -80,11 +81,16 @@ export default async function LeadsPage({
     }
   }
 
-  const { data, error } = await query;
+  const [{ data, error }, templatesResult] = await Promise.all([
+    query,
+    supabase.from("outreach_templates").select("*").eq("is_default", true),
+  ]);
   const channel = params.channel && isChannelBucket(params.channel) ? params.channel : null;
   const leads = ((data ?? []) as Lead[]).filter((lead) =>
     channel ? channelBucket(lead) === channel : true,
   );
+  const templates = (templatesResult.error ? [] : templatesResult.data ?? []) as OutreachTemplate[];
+  const whatsappTemplate = pickDefaultTemplate(templates, "whatsapp");
 
   return (
     <div className="space-y-5">
@@ -108,7 +114,7 @@ export default async function LeadsPage({
       {error ? (
         <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">{error.message}</p>
       ) : (
-        <LeadsTable leads={leads} />
+        <LeadsTable leads={leads} whatsappTemplateBody={whatsappTemplate?.body} />
       )}
     </div>
   );

@@ -4,6 +4,7 @@ import type {
   DraftStatus,
   LeadStatus,
   SendStatus,
+  TemplateChannel,
 } from "@/lib/constants";
 
 export type Lead = {
@@ -71,6 +72,18 @@ export type InboundEvent = {
   new_status: string | null;
   note: string | null;
   created_at: string;
+};
+
+export type OutreachTemplate = {
+  id: string;
+  name: string;
+  channel: TemplateChannel;
+  body: string;
+  subject: string | null;
+  is_default: boolean;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
 };
 
 export type ActionResult = { ok: true; message?: string } | { ok: false; error: string };

@@ -51,6 +51,16 @@ export const FOLLOW_UP_WAITING_STATUSES = [
 export const OUTREACH_CHANNELS = ["whatsapp", "email", "other"] as const;
 export type OutreachChannel = (typeof OUTREACH_CHANNELS)[number];
 
+/** Stored on outreach_templates.channel. Distinct from mark-sent OUTREACH_CHANNELS. */
+export const TEMPLATE_CHANNELS = ["whatsapp", "email", "both"] as const;
+export type TemplateChannel = (typeof TEMPLATE_CHANNELS)[number];
+
+export const TEMPLATE_CHANNEL_LABELS: Record<TemplateChannel, string> = {
+  whatsapp: "וואטסאפ",
+  email: "מייל",
+  both: "שניהם",
+};
+
 export const BUSINESS_TYPES = ["B2C", "B2B", "B2B2C"] as const;
 export type BusinessType = (typeof BUSINESS_TYPES)[number];
 
@@ -97,4 +107,8 @@ export function isLeadStatus(value: string): value is LeadStatus {
 
 export function isBusinessStatus(value: string): value is BusinessStatus {
   return (BUSINESS_STATUSES as readonly string[]).includes(value);
+}
+
+export function isTemplateChannel(value: string): value is TemplateChannel {
+  return (TEMPLATE_CHANNELS as readonly string[]).includes(value);
 }

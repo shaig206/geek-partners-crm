@@ -16,7 +16,8 @@ import { WhatsAppSection } from "@/components/whatsapp-section";
 import { requireUser } from "@/lib/auth";
 import { FOLLOW_UP_DAYS_AFTER_SEND } from "@/lib/constants";
 import { needsFollowUp } from "@/lib/follow-up";
-import type { EmailDraft, Lead, Send } from "@/lib/types";
+import { composeTemplatedOutreach, pickDefaultTemplate } from "@/lib/templates";
+import type { EmailDraft, Lead, OutreachTemplate, Send } from "@/lib/types";
 import { formatDate, formatDateTime } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -35,14 +36,18 @@ export default async function LeadDetailPage({
   }
   if (!lead) notFound();
 
-  const [{ data: drafts }, { data: sends }] = await Promise.all([
+  const [{ data: drafts }, { data: sends }, templatesResult] = await Promise.all([
     supabase.from("email_drafts").select("*").eq("lead_id", id).order("created_at", { ascending: false }),
     supabase.from("sends").select("*").eq("lead_id", id).order("created_at", { ascending: false }),
+    supabase.from("outreach_templates").select("*").eq("is_default", true),
   ]);
 
   const typedLead = lead as Lead;
   const typedDrafts = (drafts ?? []) as EmailDraft[];
   const typedSends = (sends ?? []) as Send[];
+  const templates = (templatesResult.error ? [] : templatesResult.data ?? []) as OutreachTemplate[];
+  const emailDraft = composeTemplatedOutreach(typedLead, pickDefaultTemplate(templates, "email"));
+  const whatsappTemplate = pickDefaultTemplate(templates, "whatsapp");
 
   return (
     <div className="space-y-6">
@@ -95,7 +100,7 @@ export default async function LeadDetailPage({
         </section>
 
         <section className="space-y-4 rounded-xl border border-border bg-card p-5">
-          <ComposeDraftForm lead={typedLead} />
+          <ComposeDraftForm lead={typedLead} subject={emailDraft.subject} body={emailDraft.body} />
           <div className="border-t border-border pt-4">
             <p className="mb-2 text-xs text-muted">
               אחרי שליחת מייל (גם מחוץ למערכת) — סמנו כאן. סטטוס התקשורת יהיה נשלחה הודעה והמעקב הראשון ייקבע לעוד{" "}
@@ -106,7 +111,7 @@ export default async function LeadDetailPage({
         </section>
       </div>
 
-      <WhatsAppSection lead={typedLead} />
+      <WhatsAppSection lead={typedLead} templateBody={whatsappTemplate?.body} />
 
       <section className="space-y-3 rounded-xl border border-border bg-card p-5">
         <h2 className="text-sm font-semibold">טיוטות ואישור</h2>

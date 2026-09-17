@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { MarkLeadSentButton } from "@/components/mark-lead-sent-button";
 import { WhatsAppOutreach } from "@/components/whatsapp-outreach";
 import { FOLLOW_UP_DAYS_AFTER_SEND } from "@/lib/constants";
@@ -5,14 +6,25 @@ import { hasWhatsApp } from "@/lib/channels";
 import type { Lead } from "@/lib/types";
 import { composeWhatsAppMessage, normalizePhoneForWaMe } from "@/lib/whatsapp";
 
-export function WhatsAppSection({ lead }: { lead: Lead }) {
+export function WhatsAppSection({
+  lead,
+  templateBody,
+}: {
+  lead: Lead;
+  templateBody?: string | null;
+}) {
   const canWhatsApp = hasWhatsApp(lead.phone);
   const digits = canWhatsApp ? normalizePhoneForWaMe(lead.phone) : null;
-  const defaultMessage = composeWhatsAppMessage(lead);
+  const defaultMessage = composeWhatsAppMessage(lead, templateBody);
 
   return (
     <section className="space-y-3 rounded-xl border border-border bg-card p-5">
-      <h2 className="text-sm font-semibold">וואטסאפ</h2>
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h2 className="text-sm font-semibold">וואטסאפ</h2>
+        <Link href="/templates" className="text-xs text-muted hover:text-brand">
+          תבניות
+        </Link>
+      </div>
       {digits ? (
         <WhatsAppOutreach key={`${digits}:${defaultMessage}`} digits={digits} defaultMessage={defaultMessage} />
       ) : lead.phone?.trim() ? (

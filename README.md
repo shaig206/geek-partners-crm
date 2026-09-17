@@ -12,8 +12,9 @@ v1 is single-user. Magic-link auth protects every app page. Outreach mail is **n
 - Leads list: search, filter by **סטטוס תקשורת** / **סטטוס עסקי** / channel (וואטסאפ · מייל · שניהם · כלום) / B2C|B2B / lag score / **צריך מעקב**, sort (including follow-up soonest)
 - Lead detail card with all fields; edit phone, email, notes, both statuses
 - After sending WhatsApp or email, **סימנתי שנשלח** sets communication status `נשלחה הודעה`, stamps `last_contacted_at`, and schedules `follow_up_at` 3 calendar days later
-- Compose a Hebrew outreach draft from the lead
-- WhatsApp Web helper on lead detail (and a light list link): copy a short Hebrew message and open `wa.me` — no auto-send, needs a usable phone number
+- Compose a Hebrew outreach draft from the lead (default **תבניות** row + lead pinpoints)
+- **תבניות** at `/templates`: create / edit / duplicate / set default / delete Hebrew WhatsApp and email templates (saved in Supabase)
+- WhatsApp Web helper on lead detail (and a light list link): copy a message from the default WhatsApp template and open `wa.me` — no auto-send, needs a usable phone number
 - Approval flow: `draft` → `pending_approval` → **Approve** sends via Resend (server-only) → log send → communication status `נשלחה הודעה` + follow-up in 3 days. Reject with a reason.
 - SQL migration + Hebrew sample leads for Pardes Hanna-Karkur, plus a later import path
 - `POST /api/webhooks/resend-inbound` stub for inbound mail (chat notify is external)
@@ -61,10 +62,11 @@ npm run typecheck
    1. [`supabase/migrations/20260914120000_init.sql`](supabase/migrations/20260914120000_init.sql) — tables, RLS, indexes
    2. [`supabase/migrations/20260917120000_leads_follow_up_at.sql`](supabase/migrations/20260917120000_leads_follow_up_at.sql) — adds `leads.follow_up_at` (nullable `timestamptz`). Safe to re-run (`IF NOT EXISTS`). Does not change `last_contacted_at`.
    3. [`supabase/migrations/20260917180000_leads_status_redesign.sql`](supabase/migrations/20260917180000_leads_status_redesign.sql) — adds `business_status`, migrates old `status` values, tightens communication-status check. **Existing local/dev databases must apply this after pull** (`supabase db push` or paste the SQL).
+   4. [`supabase/migrations/20260917200000_outreach_templates.sql`](supabase/migrations/20260917200000_outreach_templates.sql) — `outreach_templates` table, RLS, and one default WhatsApp + one default email template. **After this PR is merged, run `supabase db push`** (or paste the SQL) so templates persist in the product.
 5. Run [`supabase/seed.sql`](supabase/seed.sql) for the sample Pardes Hanna-Karkur leads.
 6. Invite / send a magic link to Shai’s email.
 
-RLS: authenticated users have CRUD on `leads`, `email_drafts`, and `sends`. The service role is used only in server code for Resend send + inbound logging (it bypasses RLS).
+RLS: authenticated users have CRUD on `leads`, `email_drafts`, `sends`, and `outreach_templates`. The service role is used only in server code for Resend send + inbound logging (it bypasses RLS). `LOCAL_NO_AUTH=true` uses the service-role client for these tables as well.
 
 ### Import more leads later
 
@@ -82,7 +84,7 @@ See [`supabase/import/README.md`](supabase/import/README.md). Start from [`supab
 
 Nothing in the browser talks to Resend.
 
-1. Open a lead → compose Hebrew subject + body (prefilled from the lead).
+1. Open a lead → compose Hebrew subject + body (prefilled from the **default email template** plus the lead’s pinpoints; falls back to the built-in composer if no default exists).
 2. Save as **draft**, or check **שלח לאישור** so the row becomes `pending_approval`. Communication status on the lead is unchanged until mark-sent / approve-and-send.
 3. **דחייה** stores `rejected` plus `reject_reason`. No mail is sent.
 4. **אישור ושליחה** is a server action that:
@@ -97,11 +99,22 @@ If the Resend key is missing, approval returns a Hebrew error and does not prete
 
 ## WhatsApp Web (manual)
 
-On a lead with a phone number, the CRM suggests a short Hebrew WhatsApp message (same warm Geek Partners tone as the email draft, without critique). **העתקה** copies it (clipboard API, with an `execCommand` fallback if the context is not secure). **פתיחה ב-WhatsApp Web** is a real `wa.me` link (`target="_blank"`) so it does not depend on `window.open` / popup blockers. Local Israeli `0…` numbers are normalized to country code `972`. Nothing is sent server-side — use WhatsApp Web on the same computer.
+On a lead with a phone number, the CRM suggests a Hebrew WhatsApp message from the **default WhatsApp template** on `/templates` (placeholders such as `{{greeting}}`, `{{pinpoints}}`, `{{ai_revolution}}` are filled from the lead). If no default template exists, it falls back to the built-in short opener. **העתקה** copies it (clipboard API, with an `execCommand` fallback if the context is not secure). **פתיחה ב-WhatsApp Web** is a real `wa.me` link (`target="_blank"`) so it does not depend on `window.open` / popup blockers. Local Israeli `0…` numbers are normalized to country code `972`. Nothing is sent server-side — use WhatsApp Web on the same computer.
 
 If the phone is missing, cannot be normalized, or is a landline (not Israeli mobile `05…`), the block explains that a mobile number is needed and links to the contact editor. The leads list shows a small וואטסאפ link only when the number is a 05-mobile.
 
 After you actually send in WhatsApp Web, click **סימנתי שנשלח בוואטסאפ**. That is the CRM write — nothing is posted to WhatsApp from the server.
+
+## Outreach templates
+
+`/templates` (**תבניות** in the CRM nav, next to לידים) stores Hebrew WhatsApp and email templates in `outreach_templates`.
+
+- Channels: `whatsapp` | `email` | `both`. Subject is required for email / both.
+- Placeholders filled on the lead card: `{{greeting}}`, `{{first_name}}`, `{{business_name}}`, `{{category}}`, `{{category_bit}}`, `{{city}}`, `{{why_lagging}}`, `{{peer_gap}}`, `{{pinpoints}}`, `{{owner_name}}`, `{{owner_role}}`, `{{company}}`, `{{ai_revolution}}`. `{{greeting}}` is the existing first-name form (`שלום אלי,`). `{{pinpoints}}` is why_lagging + peer_gap.
+- One default per channel (setting default unsets overlapping defaults). The last remaining default cannot be deleted until another template is set as default.
+- Seeded defaults follow the approved Geek Partners structure: soft greeting + intro (medium businesses / full tech stack) → their pinpoints → AI revolution → soft invite → שי גלבוע / Geek Partners.
+
+After merge, apply the migration with `supabase db push` so the table exists in the hosted project.
 
 ## Mark sent and 3-day follow-up
 
