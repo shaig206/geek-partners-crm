@@ -1,18 +1,27 @@
 import type { Lead } from "@/lib/types";
-import { COMPANY, COMPANY_DOMAIN, OWNER_NAME } from "@/lib/constants";
+import { COMPANY, DEFAULT_CITY, OWNER_NAME, OWNER_ROLE } from "@/lib/constants";
+
+/** First token of a contact name ("מיכל לוי" → "מיכל"). Missing / blank → null. */
+export function firstNameFromContact(contactName: string | null | undefined): string | null {
+  const first = contactName?.trim().split(/\s+/).find(Boolean);
+  return first || null;
+}
+
+export function greetingFromContact(contactName: string | null | undefined): string {
+  const first = firstNameFromContact(contactName);
+  return first ? `שלום ${first},` : "שלום רב,";
+}
 
 export function composeOutreach(lead: Pick<
   Lead,
   "name" | "city" | "contact_name" | "why_lagging" | "peer_gap" | "category"
 >) {
-  const greeting = lead.contact_name?.trim()
-    ? `שלום ${lead.contact_name.trim()},`
-    : "שלום רב,";
+  const greeting = greetingFromContact(lead.contact_name);
   const why =
     lead.why_lagging?.trim() ||
     "הנוכחות הדיגיטלית לא משקפת את איכות העסק בפועל";
   const peer = lead.peer_gap?.trim();
-  const city = lead.city?.trim() || "פרדס חנה-כרכור";
+  const city = lead.city?.trim() || DEFAULT_CITY;
   const categoryLine = lead.category?.trim()
     ? ` (${lead.category.trim()})`
     : "";
@@ -21,7 +30,7 @@ export function composeOutreach(lead: Pick<
 
   const body = `${greeting}
 
-שמי ${OWNER_NAME}, מ-${COMPANY} (${COMPANY_DOMAIN}). עברתי על הנוכחות הדיגיטלית של ${lead.name}${categoryLine} ב${city}.
+שמי ${OWNER_NAME}, ${OWNER_ROLE}, עברתי על הנוכחות הדיגיטלית של ${lead.name}${categoryLine} ב${city}.
 
 מה שבלט: ${why}.${peer ? `\n\nעסקים דומים באזור כבר ${peer}.` : ""}
 
@@ -30,7 +39,6 @@ export function composeOutreach(lead: Pick<
 בהצלחה,
 ${OWNER_NAME}
 ${COMPANY}
-${COMPANY_DOMAIN}
 `;
 
   return { subject, body };
