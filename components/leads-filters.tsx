@@ -20,6 +20,7 @@ export function LeadsFilters() {
 
   return (
     <form
+      key={searchParams.toString()}
       className="grid gap-3 rounded-xl border border-border bg-card p-4 sm:grid-cols-2 lg:grid-cols-5"
       onSubmit={(event) => {
         event.preventDefault();
@@ -115,7 +116,7 @@ export function LeadsFilters() {
           ))}
         </select>
       </label>
-      <div className="flex items-end gap-2 sm:col-span-2 lg:col-span-3">
+      <div className="flex items-end gap-2 sm:col-span-2 lg:col-span-2">
         <button
           type="submit"
           className="rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-dark"

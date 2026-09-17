@@ -33,12 +33,14 @@ export function LeadsTable({ leads }: { leads: Lead[] }) {
         <tbody>
           {leads.map((lead) => {
             const highLag = (lead.lag_score ?? 0) >= 4;
+            const dueFollowUp = needsFollowUp(lead);
             return (
               <tr
                 key={lead.id}
                 className={cn(
                   "border-b border-border last:border-0 hover:bg-background/80",
-                  highLag && "bg-orange-50/60",
+                  dueFollowUp && "bg-amber-50/80",
+                  highLag && !dueFollowUp && "bg-orange-50/60",
                   lead.business_type === "B2C" && "border-s-4 border-s-brand",
                 )}
               >
