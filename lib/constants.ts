@@ -1,6 +1,7 @@
 export const APP_NAME = "Geek Partners CRM";
 export const OWNER_NAME = "שי גלבוע";
 export const OWNER_NAME_EN = "Shai Gilboa";
+export const OWNER_ROLE = "מפתח תוכנה";
 export const COMPANY = "Geek Partners";
 export const COMPANY_DOMAIN = "geek.partners";
 export const DEFAULT_CITY = "פרדס חנה-כרכור";

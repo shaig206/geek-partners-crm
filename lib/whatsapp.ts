@@ -1,5 +1,6 @@
-import { COMPANY, DEFAULT_CITY, IL_COUNTRY_CODE, OWNER_NAME } from "@/lib/constants";
+import { DEFAULT_CITY, IL_COUNTRY_CODE, OWNER_NAME, OWNER_ROLE } from "@/lib/constants";
 import type { Lead } from "@/lib/types";
+import { greetingFromContact } from "@/lib/utils";
 
 const E164_MIN = 10;
 const E164_MAX = 15;
@@ -39,15 +40,15 @@ export function normalizePhoneForWaMe(phone: string | null | undefined): string 
   return digits;
 }
 
-/** Short Hebrew WhatsApp opener — same warm Geek Partners tone as email, without critique. */
+/** Short Hebrew WhatsApp opener — same first-name + developer intro as email, without critique. */
 export function composeWhatsAppMessage(lead: WhatsAppLeadFields): string {
-  const greeting = lead.contact_name?.trim() ? `שלום ${lead.contact_name.trim()},` : "שלום רב,";
+  const greeting = greetingFromContact(lead.contact_name);
   const city = lead.city?.trim() || DEFAULT_CITY;
   const category = lead.category?.trim();
   const categoryBit = category ? ` (${category})` : "";
   const siteBit = lead.website?.trim() ? ", כולל האתר" : "";
 
-  return `${greeting} שמי ${OWNER_NAME} מ-${COMPANY}.
+  return `${greeting} שמי ${OWNER_NAME}, ${OWNER_ROLE}.
 
 עברתי על ${lead.name}${categoryBit} ב${city}${siteBit} — נראית הזדמנות קטנה לחזק את הנוכחות הדיגיטלית.
 
