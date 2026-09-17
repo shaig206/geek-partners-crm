@@ -2,10 +2,13 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ComposeDraftForm } from "@/components/compose-draft-form";
 import { DraftList } from "@/components/draft-list";
-import { BusinessTypeBadge, LagBadge, StatusBadge } from "@/components/badges";
+import { BusinessTypeBadge, LagBadge, NeedsFollowUpBadge, StatusBadge } from "@/components/badges";
 import { LeadContactForm } from "@/components/lead-contact-form";
+import { MarkLeadSentButton } from "@/components/mark-lead-sent-button";
 import { WhatsAppSection } from "@/components/whatsapp-section";
 import { requireUser } from "@/lib/auth";
+import { FOLLOW_UP_DAYS_AFTER_SEND } from "@/lib/constants";
+import { needsFollowUp } from "@/lib/follow-up";
 import type { EmailDraft, Lead, Send } from "@/lib/types";
 import { formatDate, formatDateTime } from "@/lib/utils";
 
@@ -48,6 +51,7 @@ export default async function LeadDetailPage({
           <StatusBadge status={typedLead.status} />
           <BusinessTypeBadge type={typedLead.business_type} />
           <LagBadge score={typedLead.lag_score} />
+          {needsFollowUp(typedLead) ? <NeedsFollowUpBadge /> : null}
         </div>
         <p className="mt-1 text-sm text-muted">{typedLead.city}</p>
       </div>
@@ -67,6 +71,11 @@ export default async function LeadDetailPage({
             <Row label="מקור" value={typedLead.source_url} href={typedLead.source_url} />
             <Row label="נמצא" value={formatDate(typedLead.found_at)} />
             <Row label="יצירת קשר אחרונה" value={formatDateTime(typedLead.last_contacted_at)} />
+            <dt className="text-muted">מעקב הבא</dt>
+            <dd className="flex flex-wrap items-center gap-2">
+              <span>{formatDateTime(typedLead.follow_up_at)}</span>
+              {needsFollowUp(typedLead) ? <NeedsFollowUpBadge /> : null}
+            </dd>
             <Row label="הערות חימום" value={typedLead.warming_notes} />
           </dl>
           <div className="border-t border-border pt-4" id="lead-contact">
@@ -76,6 +85,13 @@ export default async function LeadDetailPage({
 
         <section className="space-y-4 rounded-xl border border-border bg-card p-5">
           <ComposeDraftForm lead={typedLead} />
+          <div className="border-t border-border pt-4">
+            <p className="mb-2 text-xs text-muted">
+              אחרי שליחת מייל (גם מחוץ למערכת) — סמנו כאן. הסטטוס יהיה נשלח והמעקב הראשון ייקבע לעוד{" "}
+              {FOLLOW_UP_DAYS_AFTER_SEND} ימים.
+            </p>
+            <MarkLeadSentButton leadId={typedLead.id} channel="email" label="סימנתי שנשלח במייל" />
+          </div>
         </section>
       </div>
 

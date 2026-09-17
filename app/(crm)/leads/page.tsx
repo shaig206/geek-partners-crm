@@ -3,7 +3,8 @@ import { Suspense } from "react";
 import { LeadsFilters } from "@/components/leads-filters";
 import { LeadsTable } from "@/components/leads-table";
 import { requireUser } from "@/lib/auth";
-import type { SortValue } from "@/lib/constants";
+import { FOLLOW_UP_WAITING_STATUSES, type SortValue } from "@/lib/constants";
+import { startOfTomorrow } from "@/lib/follow-up";
 import type { Lead } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -21,6 +22,8 @@ function sortLeads(sort: string | undefined) {
       return { column: "created_at", ascending: false };
     case "priority_desc":
       return { column: "priority", ascending: false };
+    case "follow_up_asc":
+      return { column: "follow_up_at", ascending: true };
     case "lag_desc":
     default:
       return { column: "lag_score", ascending: false };
@@ -36,6 +39,7 @@ export default async function LeadsPage({
     type?: string;
     lag?: string;
     sort?: string;
+    follow_up?: string;
   }>;
 }) {
   const { supabase } = await requireUser();
@@ -49,6 +53,12 @@ export default async function LeadsPage({
   if (params.lag) {
     const minLag = Number(params.lag);
     if (Number.isInteger(minLag)) query = query.gte("lag_score", minLag);
+  }
+  if (params.follow_up === "1") {
+    query = query
+      .in("status", [...FOLLOW_UP_WAITING_STATUSES])
+      .not("follow_up_at", "is", null)
+      .lt("follow_up_at", startOfTomorrow().toISOString());
   }
   if (params.q?.trim()) {
     const q = params.q.trim().replace(/[%(),]/g, "");
@@ -67,7 +77,7 @@ export default async function LeadsPage({
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">לידים</h1>
-          <p className="mt-1 text-sm text-muted">פרדס חנה-כרכור · חיפוש, סינון ומיון</p>
+          <p className="mt-1 text-sm text-muted">פרדס חנה-כרכור · חיפוש, סינון, מעקב ומיון</p>
         </div>
         <Link
           href="/leads/new"

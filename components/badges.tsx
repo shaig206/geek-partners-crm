@@ -46,6 +46,14 @@ export function BusinessTypeBadge({ type }: { type: string | null }) {
   );
 }
 
+export function NeedsFollowUpBadge() {
+  return (
+    <span className="inline-flex rounded-full bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-900">
+      צריך מעקב
+    </span>
+  );
+}
+
 export function LagBadge({ score }: { score: number | null }) {
   if (score == null) return <span className="text-muted">—</span>;
   const high = score >= 4;

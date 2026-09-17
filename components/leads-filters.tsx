@@ -30,6 +30,7 @@ export function LeadsFilters() {
           type: String(form.get("type") ?? ""),
           lag: String(form.get("lag") ?? ""),
           sort: String(form.get("sort") ?? ""),
+          follow_up: form.get("follow_up") === "1" ? "1" : "",
         });
       }}
     >
@@ -86,6 +87,19 @@ export function LeadsFilters() {
             </option>
           ))}
         </select>
+      </label>
+      <label className="text-sm">
+        מעקב
+        <span className="mt-1 flex min-h-[38px] items-center gap-2 rounded-lg border border-border bg-background px-3 text-sm">
+          <input
+            type="checkbox"
+            name="follow_up"
+            value="1"
+            defaultChecked={searchParams.get("follow_up") === "1"}
+            className="size-4 accent-brand"
+          />
+          צריך מעקב
+        </span>
       </label>
       <label className="text-sm lg:col-span-2">
         מיון

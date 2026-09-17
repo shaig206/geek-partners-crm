@@ -19,6 +19,18 @@ export const LEAD_STATUSES = [
 
 export type LeadStatus = (typeof LEAD_STATUSES)[number];
 
+/** Calendar days after marking outreach as sent before the first follow-up. */
+export const FOLLOW_UP_DAYS_AFTER_SEND = 3;
+
+/** Civil day used for “today / overdue” follow-up (Israel). */
+export const CRM_TIMEZONE = "Asia/Jerusalem";
+
+/** Open waiting statuses that can show צריך מעקב when follow_up_at is due. */
+export const FOLLOW_UP_WAITING_STATUSES = ["נשלח"] as const;
+
+export const OUTREACH_CHANNELS = ["whatsapp", "email", "other"] as const;
+export type OutreachChannel = (typeof OUTREACH_CHANNELS)[number];
+
 export const BUSINESS_TYPES = ["B2C", "B2B", "B2B2C"] as const;
 export type BusinessType = (typeof BUSINESS_TYPES)[number];
 
@@ -45,6 +57,7 @@ export const SORT_OPTIONS = [
   { value: "found_desc", label: "נמצא לאחרונה" },
   { value: "created_desc", label: "נוצר לאחרונה" },
   { value: "priority_desc", label: "עדיפות" },
+  { value: "follow_up_asc", label: "מעקב מוקדם תחילה" },
 ] as const;
 
 export type SortValue = (typeof SORT_OPTIONS)[number]["value"];
