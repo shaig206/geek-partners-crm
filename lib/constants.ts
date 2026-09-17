@@ -8,17 +8,29 @@ export const DEFAULT_CITY = "פרדס חנה-כרכור";
 /** Default country calling code for wa.me when a local 0… number is stored. */
 export const IL_COUNTRY_CODE = "972";
 
+/** Communication status (סטטוס תקשורת) — stored on leads.status. */
 export const LEAD_STATUSES = [
   "חדש",
-  "נמצא מייל",
-  "טיוטה ממתינה",
-  "נשלח",
-  "נענה",
-  "אין מענה",
-  "לא רלוונטי",
+  "נשלחה הודעה",
+  "אין מענה פעם אחת",
+  "אין מענה פעמיים",
 ] as const;
 
 export type LeadStatus = (typeof LEAD_STATUSES)[number];
+
+export const MARK_SENT_STATUS: LeadStatus = "נשלחה הודעה";
+
+/** Business status (סטטוס עסקי) — stored on leads.business_status. */
+export const BUSINESS_STATUSES = [
+  "חדש",
+  "רלוונטי",
+  "בפגישה או שיחה",
+  "הצעה נשלחה",
+  "זכייה",
+  "לא רלוונטי",
+] as const;
+
+export type BusinessStatus = (typeof BUSINESS_STATUSES)[number];
 
 /** Calendar days after marking outreach as sent before the first follow-up. */
 export const FOLLOW_UP_DAYS_AFTER_SEND = 3;
@@ -26,8 +38,15 @@ export const FOLLOW_UP_DAYS_AFTER_SEND = 3;
 /** Civil day used for “today / overdue” follow-up (Israel). */
 export const CRM_TIMEZONE = "Asia/Jerusalem";
 
-/** Open waiting statuses that can show צריך מעקב when follow_up_at is due. */
-export const FOLLOW_UP_WAITING_STATUSES = ["נשלח"] as const;
+/**
+ * Open waiting communication statuses that can show צריך מעקב
+ * when follow_up_at is due.
+ */
+export const FOLLOW_UP_WAITING_STATUSES = [
+  "נשלחה הודעה",
+  "אין מענה פעם אחת",
+  "אין מענה פעמיים",
+] as const;
 
 export const OUTREACH_CHANNELS = ["whatsapp", "email", "other"] as const;
 export type OutreachChannel = (typeof OUTREACH_CHANNELS)[number];
@@ -71,3 +90,11 @@ export const DRAFT_STATUS_LABELS: Record<DraftStatus, string> = {
   sent: "נשלח",
   failed: "נכשל",
 };
+
+export function isLeadStatus(value: string): value is LeadStatus {
+  return (LEAD_STATUSES as readonly string[]).includes(value);
+}
+
+export function isBusinessStatus(value: string): value is BusinessStatus {
+  return (BUSINESS_STATUSES as readonly string[]).includes(value);
+}

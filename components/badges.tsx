@@ -1,14 +1,26 @@
-import { BUSINESS_TYPES, LEAD_STATUSES } from "@/lib/constants";
+import {
+  BUSINESS_STATUSES,
+  BUSINESS_TYPES,
+  LEAD_STATUSES,
+  type BusinessStatus,
+  type LeadStatus,
+} from "@/lib/constants";
+import { CHANNEL_BUCKET_LABELS, hasEmail, hasWhatsApp } from "@/lib/channels";
 import { cn } from "@/lib/utils";
-import type { LeadStatus } from "@/lib/constants";
 
-const STATUS_STYLES: Record<LeadStatus, string> = {
+const COMMUNICATION_STYLES: Record<LeadStatus, string> = {
   חדש: "bg-stone-100 text-stone-700",
-  "נמצא מייל": "bg-sky-50 text-sky-800",
-  "טיוטה ממתינה": "bg-amber-50 text-amber-800",
-  נשלח: "bg-brand-soft text-brand-dark",
-  נענה: "bg-emerald-100 text-emerald-800",
-  "אין מענה": "bg-orange-50 text-orange-800",
+  "נשלחה הודעה": "bg-brand-soft text-brand-dark",
+  "אין מענה פעם אחת": "bg-orange-50 text-orange-800",
+  "אין מענה פעמיים": "bg-orange-100 text-orange-900",
+};
+
+const BUSINESS_STYLES: Record<BusinessStatus, string> = {
+  חדש: "bg-stone-100 text-stone-700",
+  רלוונטי: "bg-sky-50 text-sky-800",
+  "בפגישה או שיחה": "bg-violet-50 text-violet-800",
+  "הצעה נשלחה": "bg-amber-50 text-amber-800",
+  זכייה: "bg-emerald-100 text-emerald-800",
   "לא רלוונטי": "bg-stone-200 text-stone-500",
 };
 
@@ -18,10 +30,54 @@ export function StatusBadge({ status }: { status: string }) {
     <span
       className={cn(
         "inline-flex rounded-full px-2 py-0.5 text-xs font-medium",
-        known ? STATUS_STYLES[status as LeadStatus] : "bg-stone-100 text-stone-700",
+        known ? COMMUNICATION_STYLES[status as LeadStatus] : "bg-stone-100 text-stone-700",
       )}
+      title="סטטוס תקשורת"
     >
       {status}
+    </span>
+  );
+}
+
+export function BusinessStatusBadge({ status }: { status: string }) {
+  const known = (BUSINESS_STATUSES as readonly string[]).includes(status);
+  return (
+    <span
+      className={cn(
+        "inline-flex rounded-full px-2 py-0.5 text-xs font-medium",
+        known ? BUSINESS_STYLES[status as BusinessStatus] : "bg-stone-100 text-stone-700",
+      )}
+      title="סטטוס עסקי"
+    >
+      {status}
+    </span>
+  );
+}
+
+export function ChannelBadges({
+  phone,
+  email,
+}: {
+  phone: string | null | undefined;
+  email: string | null | undefined;
+}) {
+  const wa = hasWhatsApp(phone);
+  const em = hasEmail(email);
+  if (!wa && !em) {
+    return <span className="text-xs text-muted">{CHANNEL_BUCKET_LABELS.none}</span>;
+  }
+  return (
+    <span className="inline-flex flex-wrap gap-1">
+      {wa ? (
+        <span className="inline-flex rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-800">
+          {CHANNEL_BUCKET_LABELS.whatsapp}
+        </span>
+      ) : null}
+      {em ? (
+        <span className="inline-flex rounded-full bg-sky-50 px-2 py-0.5 text-xs font-medium text-sky-800">
+          {CHANNEL_BUCKET_LABELS.email}
+        </span>
+      ) : null}
     </span>
   );
 }

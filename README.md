@@ -9,12 +9,12 @@ v1 is single-user. Magic-link auth protects every app page. Outreach mail is **n
 ## Features
 
 - Magic-link login (Supabase Auth)
-- Leads list: search, filter by status / B2C|B2B / lag score / **צריך מעקב**, sort (including follow-up soonest)
-- Lead detail card with all fields; edit phone, email, notes, status (`נשלח` / `נענה` / `אין מענה` / `לא רלוונטי` included)
-- After sending WhatsApp or email, **סימנתי שנשלח** sets status `נשלח`, stamps `last_contacted_at`, and schedules `follow_up_at` 3 calendar days later
+- Leads list: search, filter by **סטטוס תקשורת** / **סטטוס עסקי** / channel (וואטסאפ · מייל · שניהם · כלום) / B2C|B2B / lag score / **צריך מעקב**, sort (including follow-up soonest)
+- Lead detail card with all fields; edit phone, email, notes, both statuses
+- After sending WhatsApp or email, **סימנתי שנשלח** sets communication status `נשלחה הודעה`, stamps `last_contacted_at`, and schedules `follow_up_at` 3 calendar days later
 - Compose a Hebrew outreach draft from the lead
 - WhatsApp Web helper on lead detail (and a light list link): copy a short Hebrew message and open `wa.me` — no auto-send, needs a usable phone number
-- Approval flow: `draft` → `pending_approval` → **Approve** sends via Resend (server-only) → log send → lead status `נשלח` + follow-up in 3 days. Reject with a reason.
+- Approval flow: `draft` → `pending_approval` → **Approve** sends via Resend (server-only) → log send → communication status `נשלחה הודעה` + follow-up in 3 days. Reject with a reason.
 - SQL migration + Hebrew sample leads for Pardes Hanna-Karkur, plus a later import path
 - `POST /api/webhooks/resend-inbound` stub for inbound mail (chat notify is external)
 
@@ -60,6 +60,7 @@ npm run typecheck
 4. Apply schema migrations (SQL editor or `supabase db push`):
    1. [`supabase/migrations/20260914120000_init.sql`](supabase/migrations/20260914120000_init.sql) — tables, RLS, indexes
    2. [`supabase/migrations/20260917120000_leads_follow_up_at.sql`](supabase/migrations/20260917120000_leads_follow_up_at.sql) — adds `leads.follow_up_at` (nullable `timestamptz`). Safe to re-run (`IF NOT EXISTS`). Does not change `last_contacted_at`.
+   3. [`supabase/migrations/20260917180000_leads_status_redesign.sql`](supabase/migrations/20260917180000_leads_status_redesign.sql) — adds `business_status`, migrates old `status` values, tightens communication-status check. **Existing local/dev databases must apply this after pull** (`supabase db push` or paste the SQL).
 5. Run [`supabase/seed.sql`](supabase/seed.sql) for the sample Pardes Hanna-Karkur leads.
 6. Invite / send a magic link to Shai’s email.
 
@@ -82,7 +83,7 @@ See [`supabase/import/README.md`](supabase/import/README.md). Start from [`supab
 Nothing in the browser talks to Resend.
 
 1. Open a lead → compose Hebrew subject + body (prefilled from the lead).
-2. Save as **draft**, or check **שלח לאישור** so the row becomes `pending_approval` and the lead status becomes `טיוטה ממתינה`.
+2. Save as **draft**, or check **שלח לאישור** so the row becomes `pending_approval`. Communication status on the lead is unchanged until mark-sent / approve-and-send.
 3. **דחייה** stores `rejected` plus `reject_reason`. No mail is sent.
 4. **אישור ושליחה** is a server action that:
    1. Confirms the caller is logged in.
@@ -90,7 +91,7 @@ Nothing in the browser talks to Resend.
    3. **Aborts unless `status` is still `pending_approval`.**
    4. Atomically claims the row (`pending_approval` → `approved`). If zero rows update, it does not send.
    5. Calls Resend with `RESEND_API_KEY` / `RESEND_FROM_EMAIL`.
-   6. Inserts a `sends` row, sets the draft to `sent` or `failed`, and moves the lead to `נשלח` with `last_contacted_at` and `follow_up_at` (now + 3 calendar days).
+   6. Inserts a `sends` row, sets the draft to `sent` or `failed`, and moves the lead communication status to `נשלחה הודעה` with `last_contacted_at` and `follow_up_at` (now + 3 calendar days).
 
 If the Resend key is missing, approval returns a Hebrew error and does not pretend to send.
 
@@ -98,7 +99,7 @@ If the Resend key is missing, approval returns a Hebrew error and does not prete
 
 On a lead with a phone number, the CRM suggests a short Hebrew WhatsApp message (same warm Geek Partners tone as the email draft, without critique). **העתקה** copies it; **פתיחה ב-WhatsApp Web** opens `https://wa.me/<digits>?text=…` in a new tab. Local Israeli `0…` numbers are normalized to country code `972`. Nothing is sent server-side — use WhatsApp Web on the same computer.
 
-If the phone is missing or cannot be normalized, the block explains that a number is needed and links to the contact editor. The leads list shows a small וואטסאפ link when a number is usable.
+If the phone is missing, cannot be normalized, or is a landline (not Israeli mobile `05…`), the block explains that a mobile number is needed and links to the contact editor. The leads list shows a small וואטסאפ link only when the number is a 05-mobile.
 
 After you actually send in WhatsApp Web, click **סימנתי שנשלח בוואטסאפ**. That is the CRM write — nothing is posted to WhatsApp from the server.
 
@@ -108,14 +109,14 @@ WhatsApp and email are sent outside the “mark sent” click (WhatsApp Web, Res
 
 1. On the lead, click **סימנתי שנשלח בוואטסאפ** or **סימנתי שנשלח במייל**.
 2. Server action `markLeadSent` (also used after Resend approve-and-send):
-   - `status` → `נשלח`
+   - `status` (סטטוס תקשורת) → `נשלחה הודעה`
    - `last_contacted_at` → now
    - `follow_up_at` → now + **3 calendar days** (`FOLLOW_UP_DAYS_AFTER_SEND` in `lib/constants.ts`). Calendar days here means the UTC date is advanced by 3, keeping the same clock time. This is not business-day skipping.
    - `warming_notes` gets a short Hebrew line such as `סומן כנשלח בוואטסאפ (17.09.2026)`.
 3. The lead card shows **מעקב הבא** when `follow_up_at` is set.
-4. Later, change status in the contact form to `נענה`, `אין מענה`, or `לא רלוונטי` (already in `LEAD_STATUSES`).
+4. Later, edit **סטטוס תקשורת** (`אין מענה פעם אחת` / `אין מענה פעמיים`) and **סטטוס עסקי** (`רלוונטי` / `בפגישה או שיחה` / `הצעה נשלחה` / `זכייה` / `לא רלוונטי`) in the contact form.
 
-**צריך מעקב** on the list (badge + filter) when `follow_up_at` is today or earlier in `Asia/Jerusalem` and status is still `נשלח`. Sort option **מעקב מוקדם תחילה** orders by `follow_up_at` ascending (nulls last).
+**צריך מעקב** on the list (badge + filter) when `follow_up_at` is today or earlier in `Asia/Jerusalem` and communication status is still `נשלחה הודעה`, `אין מענה פעם אחת`, or `אין מענה פעמיים`. Sort option **מעקב מוקדם תחילה** orders by `follow_up_at` ascending (nulls last).
 
 `LOCAL_NO_AUTH=true` still works for this flow; `markLeadSent` goes through `requireUser()`.
 
@@ -127,7 +128,7 @@ WhatsApp and email are sent outside the “mark sent” click (WhatsApp Web, Res
 https://YOUR_DOMAIN/api/webhooks/resend-inbound
 ```
 
-It accepts a JSON payload, matches a lead by `from` email when possible, nudges status toward `נענה` if the lead is `נשלח` / `אין מענה` / `טיוטה ממתינה`, and logs to `inbound_events`.
+It accepts a JSON payload, matches a lead by `from` email when possible, nudges **סטטוס עסקי** toward `רלוונטי` if it is still `חדש` and communication status is `נשלחה הודעה` / `אין מענה פעם אחת` / `אין מענה פעמיים`, and logs to `inbound_events`.
 
 **Chat notify is external.** Hook Slack, WhatsApp, or a Cursor/chat bot on `inbound_events` (or a database webhook) outside this app.
 
@@ -135,6 +136,12 @@ Optional production hardening: verify Svix signatures with `RESEND_WEBHOOK_SECRE
 
 ## Lead statuses
 
-`חדש` · `נמצא מייל` · `טיוטה ממתינה` · `נשלח` · `נענה` · `אין מענה` · `לא רלוונטי`
+Two independent fields:
+
+**סטטוס תקשורת** (`leads.status`): `חדש` · `נשלחה הודעה` · `אין מענה פעם אחת` · `אין מענה פעמיים`
+
+**סטטוס עסקי** (`leads.business_status`): `חדש` · `רלוונטי` · `בפגישה או שיחה` · `הצעה נשלחה` · `זכייה` · `לא רלוונטי`
+
+**ערוץ** is computed, not stored: WhatsApp iff phone normalizes to Israeli mobile `05…`; email iff non-empty email. List filters: וואטסאפ / מייל / שניהם / כלום.
 
 UI: Hebrew RTL throughout. B2C rows get a green start-border; lag scores 4–5 are orange/red.

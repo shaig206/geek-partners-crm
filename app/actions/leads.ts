@@ -7,8 +7,11 @@ import {
   BUSINESS_TYPES,
   DEFAULT_CITY,
   FOLLOW_UP_DAYS_AFTER_SEND,
-  LEAD_STATUSES,
+  MARK_SENT_STATUS,
+  isBusinessStatus,
+  isLeadStatus,
   OUTREACH_CHANNELS,
+  type BusinessStatus,
   type BusinessType,
   type LeadStatus,
   type OutreachChannel,
@@ -36,9 +39,11 @@ function parseLag(value: string) {
 }
 
 function parseStatus(value: string): LeadStatus | null {
-  return (LEAD_STATUSES as readonly string[]).includes(value)
-    ? (value as LeadStatus)
-    : null;
+  return isLeadStatus(value) ? value : null;
+}
+
+function parseBusinessStatus(value: string): BusinessStatus | null {
+  return isBusinessStatus(value) ? value : null;
 }
 
 function parseBusinessType(value: string): BusinessType | null {
@@ -55,6 +60,7 @@ export async function createLead(formData: FormData) {
   }
 
   const status = parseStatus(asString(formData, "status")) ?? "חדש";
+  const businessStatus = parseBusinessStatus(asString(formData, "business_status")) ?? "חדש";
   const payload = {
     name,
     website: emptyToNull(asString(formData, "website")),
@@ -69,6 +75,7 @@ export async function createLead(formData: FormData) {
     email: emptyToNull(asString(formData, "email")),
     contact_name: emptyToNull(asString(formData, "contact_name")),
     status,
+    business_status: businessStatus,
     warming_notes: emptyToNull(asString(formData, "warming_notes")),
     source_url: emptyToNull(asString(formData, "source_url")),
     priority: formData.get("priority") === "on",
@@ -90,7 +97,9 @@ export async function updateLeadContact(
 ): Promise<ActionResult> {
   const { supabase } = await requireUser();
   const status = parseStatus(asString(formData, "status"));
-  if (!status) return { ok: false, error: "סטטוס לא תקין" };
+  const businessStatus = parseBusinessStatus(asString(formData, "business_status"));
+  if (!status) return { ok: false, error: "סטטוס תקשורת לא תקין" };
+  if (!businessStatus) return { ok: false, error: "סטטוס עסקי לא תקין" };
 
   const { error } = await supabase
     .from("leads")
@@ -100,6 +109,7 @@ export async function updateLeadContact(
       warming_notes: emptyToNull(asString(formData, "warming_notes")),
       contact_name: emptyToNull(asString(formData, "contact_name")),
       status,
+      business_status: businessStatus,
     })
     .eq("id", leadId);
 
@@ -116,7 +126,7 @@ export async function updateLeadStatus(
 ): Promise<ActionResult> {
   const { supabase } = await requireUser();
   const parsed = parseStatus(status);
-  if (!parsed) return { ok: false, error: "סטטוס לא תקין" };
+  if (!parsed) return { ok: false, error: "סטטוס תקשורת לא תקין" };
 
   const { error } = await supabase.from("leads").update({ status: parsed }).eq("id", leadId);
   if (error) return { ok: false, error: error.message };
@@ -134,9 +144,9 @@ function parseChannel(channel: string | undefined): OutreachChannel {
 }
 
 /**
- * After manual WhatsApp / email send: status נשלח, stamp last contact,
- * schedule first follow-up in FOLLOW_UP_DAYS_AFTER_SEND calendar days
- * (UTC date + N days, same clock time), and append a short Hebrew note.
+ * After manual WhatsApp / email send: communication status נשלחה הודעה,
+ * stamp last contact, schedule first follow-up in FOLLOW_UP_DAYS_AFTER_SEND
+ * calendar days (UTC date + N days, same clock time), and append a short Hebrew note.
  */
 export async function markLeadSent(
   leadId: string,
@@ -164,5 +174,8 @@ export async function markLeadSent(
 
   revalidatePath(`/leads/${leadId}`);
   revalidatePath("/leads");
-  return { ok: true, message: `סומן כנשלח. מעקב ראשון בעוד ${FOLLOW_UP_DAYS_AFTER_SEND} ימים.` };
+  return {
+    ok: true,
+    message: `סומן כ${MARK_SENT_STATUS}. מעקב ראשון בעוד ${FOLLOW_UP_DAYS_AFTER_SEND} ימים.`,
+  };
 }

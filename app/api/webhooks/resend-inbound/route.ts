@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { FOLLOW_UP_WAITING_STATUSES } from "@/lib/constants";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { extractEmail } from "@/lib/utils";
 
@@ -20,8 +21,12 @@ function collectFromCandidates(payload: InboundPayload) {
   return values.map(extractEmail).filter((value): value is string => Boolean(value));
 }
 
-function shouldNudge(status: string | null | undefined) {
-  return status === "נשלח" || status === "אין מענה" || status === "טיוטה ממתינה";
+function shouldNudgeBusiness(
+  businessStatus: string | null | undefined,
+  communicationStatus: string | null | undefined,
+) {
+  if (businessStatus !== "חדש") return false;
+  return (FOLLOW_UP_WAITING_STATUSES as readonly string[]).includes(communicationStatus ?? "");
 }
 
 export async function GET() {
@@ -36,7 +41,7 @@ export async function GET() {
 /**
  * Resend inbound stub.
  * Accepts email.received (and generic) payloads, matches a lead by from-email,
- * nudges status toward נענה when it makes sense, and logs the event.
+ * nudges business_status toward רלוונטי when we already reached out, and logs the event.
  *
  * Chat / Slack / WhatsApp notification is intentionally NOT done here —
  * wire that in an external automation on `inbound_events`.
@@ -61,21 +66,21 @@ export async function POST(request: Request) {
     if (fromEmail) {
       const { data: lead } = await admin
         .from("leads")
-        .select("id, status, email")
+        .select("id, status, business_status, email")
         .ilike("email", fromEmail)
         .maybeSingle();
 
       if (lead) {
         matchedLeadId = lead.id;
-        previousStatus = lead.status;
-        if (shouldNudge(lead.status)) {
+        previousStatus = lead.business_status ?? lead.status;
+        if (shouldNudgeBusiness(lead.business_status, lead.status)) {
           const { error } = await admin
             .from("leads")
-            .update({ status: "נענה" })
+            .update({ business_status: "רלוונטי" })
             .eq("id", lead.id);
           if (!error) {
-            newStatus = "נענה";
-            note = "matched_and_nudged";
+            newStatus = "רלוונטי";
+            note = "matched_and_nudged_business";
           } else {
             note = `matched_nudge_failed:${error.message}`;
           }

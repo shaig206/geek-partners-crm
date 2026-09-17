@@ -3,7 +3,13 @@ import { Suspense } from "react";
 import { LeadsFilters } from "@/components/leads-filters";
 import { LeadsTable } from "@/components/leads-table";
 import { requireUser } from "@/lib/auth";
-import { FOLLOW_UP_WAITING_STATUSES, type SortValue } from "@/lib/constants";
+import { channelBucket, isChannelBucket } from "@/lib/channels";
+import {
+  FOLLOW_UP_WAITING_STATUSES,
+  isBusinessStatus,
+  isLeadStatus,
+  type SortValue,
+} from "@/lib/constants";
 import { startOfTomorrow } from "@/lib/follow-up";
 import type { Lead } from "@/lib/types";
 
@@ -36,6 +42,8 @@ export default async function LeadsPage({
   searchParams: Promise<{
     q?: string;
     status?: string;
+    business_status?: string;
+    channel?: string;
     type?: string;
     lag?: string;
     sort?: string;
@@ -48,7 +56,10 @@ export default async function LeadsPage({
 
   let query = supabase.from("leads").select("*").order(column, { ascending, nullsFirst: false });
 
-  if (params.status) query = query.eq("status", params.status);
+  if (params.status && isLeadStatus(params.status)) query = query.eq("status", params.status);
+  if (params.business_status && isBusinessStatus(params.business_status)) {
+    query = query.eq("business_status", params.business_status);
+  }
   if (params.type) query = query.eq("business_type", params.type);
   if (params.lag) {
     const minLag = Number(params.lag);
@@ -70,7 +81,10 @@ export default async function LeadsPage({
   }
 
   const { data, error } = await query;
-  const leads = (data ?? []) as Lead[];
+  const channel = params.channel && isChannelBucket(params.channel) ? params.channel : null;
+  const leads = ((data ?? []) as Lead[]).filter((lead) =>
+    channel ? channelBucket(lead) === channel : true,
+  );
 
   return (
     <div className="space-y-5">
