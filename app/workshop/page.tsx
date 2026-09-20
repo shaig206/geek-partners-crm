@@ -59,14 +59,14 @@ export default function WorkshopPage() {
 
       <section className="relative overflow-hidden border-b border-border">
         <div className="workshop-aurora pointer-events-none absolute inset-0" aria-hidden="true" />
-        <div className="relative mx-auto grid w-full max-w-6xl gap-10 px-4 py-12 sm:py-16 lg:grid-cols-[minmax(0,1.15fr)_minmax(20rem,0.85fr)] lg:items-start lg:gap-12 lg:py-20">
-          <div>
+        <div className="relative mx-auto grid w-full max-w-6xl gap-10 px-4 py-12 sm:py-16 lg:grid-cols-[minmax(0,1fr)_minmax(22rem,28rem)] lg:items-start lg:gap-14 lg:py-20">
+          <div className="min-w-0">
             <p className="inline-flex items-center gap-2 rounded-full border border-brand/20 bg-card/80 px-3 py-1 text-sm font-medium text-brand-dark shadow-sm">
               <span className="size-1.5 rounded-full bg-brand" aria-hidden="true" />
               סדנה לעסקים בינוניים
             </p>
-            <h1 className="mt-5 text-[clamp(1.85rem,1.2rem+2.4vw,3.15rem)] font-extrabold leading-[1.18] tracking-tight text-foreground text-balance">
-              {WORKSHOP_HEADLINE}
+            <h1 className="mt-5 text-[clamp(1.75rem,1.1rem+2.1vw,2.85rem)] font-extrabold leading-[1.2] tracking-tight text-foreground">
+              <WorkshopHeadline text={WORKSHOP_HEADLINE} />
             </h1>
             <p className="mt-5 max-w-xl text-base leading-7 text-secondary sm:text-lg sm:leading-8">
               {WORKSHOP_LEDE}
@@ -111,7 +111,7 @@ export default function WorkshopPage() {
           >
             מה בפנים
           </h2>
-          <ol className="mt-8 grid gap-4 sm:grid-cols-3">
+          <ol className="mt-8 grid gap-4 md:grid-cols-3">
             {WORKSHOP_AGENDA.map((item, index) => (
               <li key={item}>
                 <AgendaCard index={index} item={item} />
@@ -130,6 +130,23 @@ export default function WorkshopPage() {
   );
 }
 
+function WorkshopHeadline({ text }: { text: string }) {
+  const parts = text.split(/(ו-AI)/g);
+  return (
+    <>
+      {parts.map((part, index) =>
+        part === "ו-AI" ? (
+          <span key={index} className="whitespace-nowrap">
+            {part}
+          </span>
+        ) : (
+          <span key={index}>{part}</span>
+        ),
+      )}
+    </>
+  );
+}
+
 function EventChip({
   label,
   value,
@@ -142,7 +159,7 @@ function EventChip({
   return (
     <span
       className={cn(
-        "inline-flex max-w-full flex-col rounded-2xl border px-3.5 py-2.5 shadow-sm sm:flex-row sm:items-baseline sm:gap-2",
+        "inline-flex max-w-full items-baseline gap-2 rounded-2xl border px-3.5 py-2.5 shadow-sm",
         tone === "accent"
           ? "border-accent/25 bg-accent-soft text-accent-dark"
           : "border-brand/20 bg-brand-soft text-brand-dark",
