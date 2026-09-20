@@ -161,7 +161,7 @@ function Row({
       <dt className="text-muted">{label}</dt>
       <dd className="whitespace-pre-wrap">
         {href && value ? (
-          <a className="text-brand hover:underline" href={href} target="_blank" rel="noreferrer">
+          <a className="text-link hover:underline" href={href} target="_blank" rel="noreferrer">
             {display}
           </a>
         ) : (

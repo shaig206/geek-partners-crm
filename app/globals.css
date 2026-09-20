@@ -1,19 +1,23 @@
 @import "tailwindcss";
 
 :root {
-  --background: #edf0f7;
+  --background: #f8fafc;
   --foreground: #0f172a;
-  --brand: #5468ff;
-  --brand-dark: #3f4fe6;
+  --brand: #4f46e5;
+  --brand-dark: #4338ca;
+  --brand-press: #3730a3;
   --brand-soft: #eef0ff;
   --card: #ffffff;
+  --inset: #f1f5f9;
   --muted: #64748b;
-  --border: #d2d8e6;
-  --accent: #14a3a0;
-  --accent-dark: #0d9488;
-  --accent-soft: #e6f7f6;
-  --success: #10b981;
-  --success-dark: #059669;
+  --secondary: #334155;
+  --border: #e2e8f0;
+  --link: #2563eb;
+  --accent: #0d9488;
+  --accent-dark: #0f766e;
+  --accent-soft: #ccfbf1;
+  --success: #059669;
+  --success-dark: #047857;
   --success-soft: #d1fae5;
   --danger: #dc2626;
   --lag-high: #dc2626;
@@ -25,10 +29,14 @@
   --color-foreground: var(--foreground);
   --color-brand: var(--brand);
   --color-brand-dark: var(--brand-dark);
+  --color-brand-press: var(--brand-press);
   --color-brand-soft: var(--brand-soft);
   --color-card: var(--card);
+  --color-inset: var(--inset);
   --color-muted: var(--muted);
+  --color-secondary: var(--secondary);
   --color-border: var(--border);
+  --color-link: var(--link);
   --color-accent: var(--accent);
   --color-accent-dark: var(--accent-dark);
   --color-accent-soft: var(--accent-soft);
@@ -64,7 +72,7 @@ button {
   font: inherit;
 }
 
-/* Indigo CTAs — match geek.partners primary buttons */
+/* Indigo CTAs — match geek.partners gp-btn--primary */
 .bg-brand.text-white {
   font-weight: 600;
   letter-spacing: -0.005em;
@@ -76,4 +84,9 @@ a.bg-brand {
     background-color 0.15s ease,
     color 0.15s ease,
     box-shadow 0.15s ease;
+}
+
+button.bg-brand:active,
+a.bg-brand:active {
+  background-color: var(--brand-press);
 }

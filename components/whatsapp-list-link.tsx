@@ -18,7 +18,7 @@ export function WhatsAppListLink({
       href={buildWhatsAppWebUrl(digits, composeWhatsAppMessage(lead, templateBody))}
       target="_blank"
       rel="noopener noreferrer"
-      className="text-xs text-brand hover:underline"
+      className="text-xs text-link hover:underline"
       title="פתיחה ב-WhatsApp Web"
     >
       וואטסאפ

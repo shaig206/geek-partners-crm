@@ -105,7 +105,7 @@ export function LeadsTable({
                 )}
               >
                 <td className="px-3 py-2.5">
-                  <Link href={`/leads/${lead.id}`} className="font-medium hover:text-brand">
+                  <Link href={`/leads/${lead.id}`} className="font-medium hover:text-link">
                     {lead.priority ? "★ " : ""}
                     {lead.name}
                   </Link>
