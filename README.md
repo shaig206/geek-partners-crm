@@ -29,7 +29,7 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3100](http://localhost:3100) or [http://127.0.0.1:3100](http://127.0.0.1:3100). Both work in local development (`allowedDevOrigins` in `next.config.ts` so Next 16 HMR hydrates either hostname). You will be sent to `/login`. The public workshop page is [http://127.0.0.1:3100/workshop](http://127.0.0.1:3100/workshop) and does not require login.
+Open [http://localhost:3100](http://localhost:3100) or [http://127.0.0.1:3100](http://127.0.0.1:3100). Both work in local development (`allowedDevOrigins` in `next.config.ts` so Next 16 HMR hydrates either hostname, plus `workshop.geek.partners` and `crm.local` if those are mapped in hosts). You will be sent to `/login`. The public workshop page is [http://127.0.0.1:3100/workshop](http://127.0.0.1:3100/workshop) and does not require login.
 
 To skip magic-link login on your computer, add `LOCAL_NO_AUTH=true` to `.env.local` and restart `npm run dev`. Root `/` and `/leads` then load without email auth. Leave the flag unset (or `false`) for the normal login flow — do not set it on Vercel. `/workshop` is public either way.
 

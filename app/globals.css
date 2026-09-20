@@ -7,6 +7,7 @@
   --brand-dark: #4338ca;
   --brand-press: #3730a3;
   --brand-soft: #eef0ff;
+  --brand-wash: #dfe3ff;
   --card: #ffffff;
   --inset: #f1f5f9;
   --muted: #64748b;
@@ -31,6 +32,7 @@
   --color-brand-dark: var(--brand-dark);
   --color-brand-press: var(--brand-press);
   --color-brand-soft: var(--brand-soft);
+  --color-brand-wash: var(--brand-wash);
   --color-card: var(--card);
   --color-inset: var(--inset);
   --color-muted: var(--muted);
@@ -89,4 +91,29 @@ a.bg-brand {
 button.bg-brand:active,
 a.bg-brand:active {
   background-color: var(--brand-press);
+}
+
+/* Soft indigo/teal wash behind the public workshop hero — geek.partners aurora. */
+.workshop-aurora {
+  background:
+    radial-gradient(
+      70% 90% at 88% -8%,
+      color-mix(in srgb, var(--brand) 22%, transparent),
+      transparent 58%
+    ),
+    radial-gradient(
+      46% 58% at 6% 8%,
+      color-mix(in srgb, var(--accent) 12%, transparent),
+      transparent 52%
+    ),
+    linear-gradient(180deg, var(--brand-soft) 0%, var(--background) 78%);
+}
+
+.workshop-cta-glow {
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--brand) 30%, transparent);
+}
+
+button.workshop-cta-glow:hover,
+a.workshop-cta-glow:hover {
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--brand) 36%, transparent);
 }
