@@ -4,7 +4,7 @@ Simple Hebrew RTL CRM for **Geek Partners** (`geek.partners`), owned by **Shai G
 
 Stack: Next.js App Router, TypeScript, Tailwind CSS, Supabase, Resend. Deploy target: Vercel.
 
-v1 is single-user. Magic-link auth protects every app page. Outreach mail is **never** sent until a draft is approved, and the server re-checks `email_drafts.status = pending_approval` in the database immediately before calling Resend.
+v1 is single-user. Magic-link auth protects CRM pages (`/leads`, `/templates`). `/workshop` is a public landing page and stays reachable without login. Outreach mail is **never** sent until a draft is approved, and the server re-checks `email_drafts.status = pending_approval` in the database immediately before calling Resend.
 
 ## Features
 
@@ -18,6 +18,7 @@ v1 is single-user. Magic-link auth protects every app page. Outreach mail is **n
 - Approval flow: `draft` → `pending_approval` → **Approve** sends via Resend (server-only) → log send → communication status `נשלחה הודעה` + follow-up in 3 days. Reject with a reason.
 - SQL migration + Hebrew sample leads for Pardes Hanna-Karkur, plus a later import path
 - `POST /api/webhooks/resend-inbound` stub for inbound mail (chat notify is external)
+- Public workshop landing at `/workshop` (no login): Hebrew event page, registration form, and a lead row tagged `מקור: הרשמה לסדנה`
 
 ## Local setup
 
@@ -28,9 +29,9 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) or [http://127.0.0.1:3000](http://127.0.0.1:3000). Both work in local development (`allowedDevOrigins` in `next.config.ts` so Next 16 HMR hydrates either hostname). You will be sent to `/login`.
+Open [http://localhost:3100](http://localhost:3100) or [http://127.0.0.1:3100](http://127.0.0.1:3100). Both work in local development (`allowedDevOrigins` in `next.config.ts` so Next 16 HMR hydrates either hostname). You will be sent to `/login`. The public workshop page is [http://127.0.0.1:3100/workshop](http://127.0.0.1:3100/workshop) and does not require login.
 
-To skip magic-link login on your computer, add `LOCAL_NO_AUTH=true` to `.env.local` and restart `npm run dev`. Root `/` and `/leads` then load without email auth. Leave the flag unset (or `false`) for the normal login flow — do not set it on Vercel.
+To skip magic-link login on your computer, add `LOCAL_NO_AUTH=true` to `.env.local` and restart `npm run dev`. Root `/` and `/leads` then load without email auth. Leave the flag unset (or `false`) for the normal login flow — do not set it on Vercel. `/workshop` is public either way.
 
 Required env (also listed in `.env.example`):
 
@@ -56,8 +57,8 @@ npm run typecheck
 1. Create a project.
 2. **Authentication → Providers → Email**: enable magic link / OTP. Turn off confirmations if you want the first login to just work for a single user.
 3. **Authentication → URL configuration**
-   - Site URL: `http://localhost:3000` locally, then your Vercel URL in production.
-   - Redirect URLs: `http://localhost:3000/auth/callback` and `https://YOUR_DOMAIN/auth/callback`.
+   - Site URL: `http://localhost:3100` locally, then your Vercel URL in production.
+   - Redirect URLs: `http://localhost:3100/auth/callback` and `https://YOUR_DOMAIN/auth/callback`.
 4. Apply schema migrations (SQL editor or `supabase db push`):
    1. [`supabase/migrations/20260914120000_init.sql`](supabase/migrations/20260914120000_init.sql) — tables, RLS, indexes
    2. [`supabase/migrations/20260917120000_leads_follow_up_at.sql`](supabase/migrations/20260917120000_leads_follow_up_at.sql) — adds `leads.follow_up_at` (nullable `timestamptz`). Safe to re-run (`IF NOT EXISTS`). Does not change `last_contacted_at`.
@@ -146,6 +147,32 @@ It accepts a JSON payload, matches a lead by `from` email when possible, nudges 
 **Chat notify is external.** Hook Slack, WhatsApp, or a Cursor/chat bot on `inbound_events` (or a database webhook) outside this app.
 
 Optional production hardening: verify Svix signatures with `RESEND_WEBHOOK_SECRET` (not required for the v1 stub).
+
+## Public workshop page
+
+`/workshop` is a Hebrew landing + registration form **outside** the authenticated CRM shell (no leads nav). Date, time, and the Regus address are constants at the top of [`lib/workshop.ts`](lib/workshop.ts).
+
+On submit, a server action inserts a `leads` row with the **service role** (so it works without login; RLS is authenticated-only):
+
+- `name` = business name, or the person if business is blank (`contact_name` is always the registrant)
+- `email` / `phone` from the form — at least one is required
+- `city` = פרדס חנה-כרכור
+- `status` / `business_status` = `חדש`
+- `business_type` = null
+- `category` = `סדנה`
+- `source_url` = `/workshop`
+- `warming_notes` = `מקור: הרשמה לסדנה`
+- `priority` = true
+- `found_at` = today (`Asia/Jerusalem`)
+
+`proxy.ts` skips `/workshop`, and `updateSession` treats it as public, so GET and the form POST are not redirected to `/login` even when `LOCAL_NO_AUTH` is false.
+
+### How to test
+
+1. `npm run dev` (port **3100**).
+2. Open [http://127.0.0.1:3100/workshop](http://127.0.0.1:3100/workshop) without logging in.
+3. Submit a test name plus an email **or** a phone number. You should see the thank-you state on the same page.
+4. Sign in (or use `LOCAL_NO_AUTH=true`) and open `/leads` — the new row is named after the business, category `סדנה`.
 
 ## Lead statuses
 

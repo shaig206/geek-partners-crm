@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { getSupabasePublicEnv, isLocalNoAuth, isSupabaseConfigured } from "@/lib/env";
+import { isPublicPath } from "@/lib/public-paths";
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -11,11 +12,7 @@ export async function updateSession(request: NextRequest) {
 
   const { url, anonKey } = getSupabasePublicEnv();
   const pathname = request.nextUrl.pathname;
-
-  const isPublic =
-    pathname.startsWith("/login") ||
-    pathname.startsWith("/auth") ||
-    pathname.startsWith("/api/webhooks/");
+  const isPublic = isPublicPath(pathname);
 
   const missingEnvRedirect = () => {
     const loginUrl = request.nextUrl.clone();

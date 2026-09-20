@@ -19,7 +19,7 @@ export async function sendMagicLink(formData: FormData) {
   const origin =
     headerList.get("origin") ??
     process.env.NEXT_PUBLIC_SITE_URL ??
-    "http://localhost:3000";
+    "http://localhost:3100";
 
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithOtp({
