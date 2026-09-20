@@ -157,4 +157,4 @@ Two independent fields:
 
 **ערוץ** is computed, not stored: WhatsApp iff phone normalizes to Israeli mobile `05…`; email iff non-empty email. List filters: וואטסאפ / מייל / שניהם / כלום.
 
-UI: Hebrew RTL throughout. B2C rows get a green start-border; lag scores 4–5 are orange/red.
+UI: Hebrew RTL throughout. B2C rows get an indigo start-border; lag scores 4–5 are amber/red. Colors follow the geek.partners indigo/slate palette.

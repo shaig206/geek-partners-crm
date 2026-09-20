@@ -1,15 +1,22 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f3efe6;
-  --foreground: #1c1917;
-  --brand: #1f7a4d;
-  --brand-dark: #165c3a;
-  --brand-soft: #e5f4eb;
-  --card: #fffcf7;
-  --muted: #78716c;
-  --border: #e4ddd0;
-  --lag-high: #c2410c;
+  --background: #edf0f7;
+  --foreground: #0f172a;
+  --brand: #5468ff;
+  --brand-dark: #3f4fe6;
+  --brand-soft: #eef0ff;
+  --card: #ffffff;
+  --muted: #64748b;
+  --border: #d2d8e6;
+  --accent: #14a3a0;
+  --accent-dark: #0d9488;
+  --accent-soft: #e6f7f6;
+  --success: #10b981;
+  --success-dark: #059669;
+  --success-soft: #d1fae5;
+  --danger: #dc2626;
+  --lag-high: #dc2626;
   --lag-mid: #d97706;
 }
 
@@ -22,6 +29,13 @@
   --color-card: var(--card);
   --color-muted: var(--muted);
   --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-dark: var(--accent-dark);
+  --color-accent-soft: var(--accent-soft);
+  --color-success: var(--success);
+  --color-success-dark: var(--success-dark);
+  --color-success-soft: var(--success-soft);
+  --color-danger: var(--danger);
   --color-lag-high: var(--lag-high);
   --color-lag-mid: var(--lag-mid);
   --font-sans: var(--font-heebo);
@@ -31,10 +45,16 @@ html,
 body {
   background: var(--background);
   color: var(--foreground);
+  color-scheme: light;
 }
 
 body {
   font-family: var(--font-heebo), Arial, sans-serif;
+}
+
+h1,
+h2 {
+  letter-spacing: -0.02em;
 }
 
 input,
@@ -42,4 +62,18 @@ select,
 textarea,
 button {
   font: inherit;
+}
+
+/* Indigo CTAs — match geek.partners primary buttons */
+.bg-brand.text-white {
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+
+button.bg-brand,
+a.bg-brand {
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease;
 }

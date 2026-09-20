@@ -79,7 +79,7 @@ export default async function LoginPage({
           <button
             type="submit"
             disabled={!configured}
-            className="w-full rounded-lg bg-brand px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-dark disabled:cursor-not-allowed disabled:bg-stone-300 disabled:text-stone-600 disabled:hover:bg-stone-300"
+            className="w-full rounded-lg bg-brand px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-dark disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-600 disabled:hover:bg-slate-300"
           >
             שלחו קישור התחברות
           </button>
