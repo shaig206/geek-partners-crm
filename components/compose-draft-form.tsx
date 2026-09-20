@@ -26,7 +26,7 @@ export function ComposeDraftForm({
       <h2 className="text-sm font-semibold">טיוטת פנייה בעברית</h2>
       <p className="text-xs text-muted">
         הנוסח מגיע מ
-        <Link href="/templates" className="text-brand hover:underline">
+        <Link href="/templates" className="text-link hover:underline">
           תבנית ברירת המחדל
         </Link>
         {" "}

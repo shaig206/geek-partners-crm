@@ -21,7 +21,7 @@ export function WhatsAppSection({
     <section className="space-y-3 rounded-xl border border-border bg-card p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="text-sm font-semibold">וואטסאפ</h2>
-        <Link href="/templates" className="text-xs text-muted hover:text-brand">
+        <Link href="/templates" className="text-xs text-muted hover:text-link">
           תבניות
         </Link>
       </div>
@@ -34,7 +34,7 @@ export function WhatsAppSection({
       ) : (
         <p className="text-sm text-muted">
           כדי להעתיק הודעה ולפתוח צ׳אט ב-WhatsApp Web צריך מספר טלפון נייד (05).{" "}
-          <a href="#lead-contact" className="text-brand hover:underline">
+          <a href="#lead-contact" className="text-link hover:underline">
             הוסיפו טלפון בכרטיס
           </a>
         </p>

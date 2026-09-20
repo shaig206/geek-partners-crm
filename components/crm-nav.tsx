@@ -21,7 +21,7 @@ export function CrmNav() {
             key={link.href}
             href={link.href}
             className={cn(
-              "rounded-md px-3 py-1.5 font-medium",
+              "rounded-md px-3 py-1.5 font-medium transition-colors",
               active ? "bg-brand-soft text-brand-dark" : "text-muted hover:bg-background hover:text-foreground",
             )}
             aria-current={active ? "page" : undefined}

@@ -88,7 +88,7 @@ export function TemplatesManager({
 
 function ChannelBadge({ channel }: { channel: TemplateChannel }) {
   const styles: Record<TemplateChannel, string> = {
-    whatsapp: "bg-emerald-50 text-emerald-800",
+    whatsapp: "bg-accent-soft text-accent-dark",
     email: "bg-sky-50 text-sky-800",
     both: "bg-violet-50 text-violet-800",
   };
