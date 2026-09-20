@@ -1,0 +1,92 @@
+"use client";
+
+import { useActionState } from "react";
+import { registerWorkshop } from "@/app/actions/workshop";
+import { WORKSHOP_THANKS_BODY, WORKSHOP_THANKS_TITLE } from "@/lib/workshop";
+import type { ActionResult } from "@/lib/types";
+
+const initial: ActionResult | null = null;
+
+const inputClass =
+  "mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none ring-brand focus:ring-2";
+
+export function WorkshopForm() {
+  const [state, action, pending] = useActionState(registerWorkshop, initial);
+
+  if (state?.ok === true) {
+    return (
+      <div
+        className="rounded-xl bg-brand-soft px-4 py-5 text-brand-dark"
+        role="status"
+        aria-live="polite"
+      >
+        <p className="text-lg font-semibold">{WORKSHOP_THANKS_TITLE}</p>
+        <p className="mt-2 text-sm leading-6">{WORKSHOP_THANKS_BODY}</p>
+      </div>
+    );
+  }
+
+  return (
+    <form action={action} className="space-y-4">
+      <label className="block text-sm font-medium">
+        שם מלא
+        <input
+          name="contact_name"
+          type="text"
+          required
+          autoComplete="name"
+          className={inputClass}
+        />
+      </label>
+      <label className="block text-sm font-medium">
+        שם העסק
+        <input
+          name="business_name"
+          type="text"
+          autoComplete="organization"
+          className={inputClass}
+        />
+      </label>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <label className="block text-sm font-medium">
+          מייל
+          <input
+            name="email"
+            type="email"
+            autoComplete="email"
+            dir="ltr"
+            className={inputClass}
+            placeholder="name@business.com"
+          />
+        </label>
+        <label className="block text-sm font-medium">
+          וואטסאפ / טלפון
+          <input
+            name="phone"
+            type="tel"
+            autoComplete="tel"
+            dir="ltr"
+            inputMode="tel"
+            className={inputClass}
+            placeholder="050-0000000"
+          />
+        </label>
+      </div>
+      <p className="text-xs leading-5 text-muted">
+        מספיק אחד משני אמצעי הקשר — מייל או וואטסאפ/טלפון.
+      </p>
+      {state?.ok === false ? (
+        <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800" role="alert">
+          {state.error}
+        </p>
+      ) : null}
+      <button
+        type="submit"
+        disabled={pending}
+        className="w-full rounded-lg bg-brand px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        {pending ? "שולחים…" : "הרשמה לסדנה"}
+      </button>
+    </form>
+  );
+}
