@@ -80,14 +80,41 @@ export type SendStatus = (typeof SEND_STATUSES)[number];
 
 export const LAG_SCORES = [1, 2, 3, 4, 5] as const;
 
+/**
+ * `sort` query param: `{key}_{asc|desc}`.
+ * Header clicks and the filters dropdown share this list.
+ *
+ * Default directions on first click of a new column:
+ * - פיגור (`lag`): desc (high lag first — existing default UX)
+ * - נמצא / נוצר / עדיפות: desc
+ * - מעקב: asc (soonest first — existing default)
+ * - text / enum / channel: asc (Hebrew א–ת, workflow order, or channel buckets)
+ */
 export const SORT_OPTIONS = [
   { value: "lag_desc", label: "פיגור גבוה תחילה" },
   { value: "lag_asc", label: "פיגור נמוך תחילה" },
   { value: "name_asc", label: "שם א–ת" },
-  { value: "found_desc", label: "נמצא לאחרונה" },
-  { value: "created_desc", label: "נוצר לאחרונה" },
-  { value: "priority_desc", label: "עדיפות" },
+  { value: "name_desc", label: "שם ת–א" },
+  { value: "category_asc", label: "קטגוריה א–ת" },
+  { value: "category_desc", label: "קטגוריה ת–א" },
+  { value: "type_asc", label: "סוג B2C → B2B → B2B2C" },
+  { value: "type_desc", label: "סוג B2B2C → B2B → B2C" },
+  { value: "status_asc", label: "סטטוס תקשורת לפי סדר העבודה" },
+  { value: "status_desc", label: "סטטוס תקשורת בסדר הפוך" },
+  { value: "business_status_asc", label: "סטטוס עסקי לפי סדר העבודה" },
+  { value: "business_status_desc", label: "סטטוס עסקי בסדר הפוך" },
+  { value: "channel_asc", label: "ערוץ וואטסאפ → מייל → שניהם → כלום" },
+  { value: "channel_desc", label: "ערוץ כלום → שניהם → מייל → וואטסאפ" },
   { value: "follow_up_asc", label: "מעקב מוקדם תחילה" },
+  { value: "follow_up_desc", label: "מעקב מאוחר תחילה" },
+  { value: "email_asc", label: "מייל א–ת" },
+  { value: "email_desc", label: "מייל ת–א" },
+  { value: "found_desc", label: "נמצא לאחרונה" },
+  { value: "found_asc", label: "נמצא קודם" },
+  { value: "created_desc", label: "נוצר לאחרונה" },
+  { value: "created_asc", label: "נוצר קודם" },
+  { value: "priority_desc", label: "עדיפות" },
+  { value: "priority_asc", label: "בלי עדיפות תחילה" },
 ] as const;
 
 export type SortValue = (typeof SORT_OPTIONS)[number]["value"];

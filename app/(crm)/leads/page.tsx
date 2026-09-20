@@ -4,38 +4,13 @@ import { LeadsFilters } from "@/components/leads-filters";
 import { LeadsTable } from "@/components/leads-table";
 import { requireUser } from "@/lib/auth";
 import { channelBucket, isChannelBucket } from "@/lib/channels";
-import {
-  FOLLOW_UP_WAITING_STATUSES,
-  isBusinessStatus,
-  isLeadStatus,
-  type SortValue,
-} from "@/lib/constants";
+import { FOLLOW_UP_WAITING_STATUSES, isBusinessStatus, isLeadStatus } from "@/lib/constants";
 import { startOfTomorrow } from "@/lib/follow-up";
+import { sortLeadsList } from "@/lib/sort";
 import { pickDefaultTemplate } from "@/lib/templates";
 import type { Lead, OutreachTemplate } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
-
-function sortLeads(sort: string | undefined) {
-  const value = (sort ?? "lag_desc") as SortValue;
-  switch (value) {
-    case "lag_asc":
-      return { column: "lag_score", ascending: true };
-    case "name_asc":
-      return { column: "name", ascending: true };
-    case "found_desc":
-      return { column: "found_at", ascending: false };
-    case "created_desc":
-      return { column: "created_at", ascending: false };
-    case "priority_desc":
-      return { column: "priority", ascending: false };
-    case "follow_up_asc":
-      return { column: "follow_up_at", ascending: true };
-    case "lag_desc":
-    default:
-      return { column: "lag_score", ascending: false };
-  }
-}
 
 export default async function LeadsPage({
   searchParams,
@@ -53,9 +28,8 @@ export default async function LeadsPage({
 }) {
   const { supabase } = await requireUser();
   const params = await searchParams;
-  const { column, ascending } = sortLeads(params.sort);
 
-  let query = supabase.from("leads").select("*").order(column, { ascending, nullsFirst: false });
+  let query = supabase.from("leads").select("*");
 
   if (params.status && isLeadStatus(params.status)) query = query.eq("status", params.status);
   if (params.business_status && isBusinessStatus(params.business_status)) {
@@ -86,8 +60,9 @@ export default async function LeadsPage({
     supabase.from("outreach_templates").select("*").eq("is_default", true),
   ]);
   const channel = params.channel && isChannelBucket(params.channel) ? params.channel : null;
-  const leads = ((data ?? []) as Lead[]).filter((lead) =>
-    channel ? channelBucket(lead) === channel : true,
+  const leads = sortLeadsList(
+    ((data ?? []) as Lead[]).filter((lead) => (channel ? channelBucket(lead) === channel : true)),
+    params.sort,
   );
   const templates = (templatesResult.error ? [] : templatesResult.data ?? []) as OutreachTemplate[];
   const whatsappTemplate = pickDefaultTemplate(templates, "whatsapp");
@@ -114,7 +89,11 @@ export default async function LeadsPage({
       {error ? (
         <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">{error.message}</p>
       ) : (
-        <LeadsTable leads={leads} whatsappTemplateBody={whatsappTemplate?.body} />
+        <LeadsTable
+          leads={leads}
+          query={params}
+          whatsappTemplateBody={whatsappTemplate?.body}
+        />
       )}
     </div>
   );

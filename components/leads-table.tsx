@@ -9,14 +9,66 @@ import {
 } from "@/components/badges";
 import { WhatsAppListLink } from "@/components/whatsapp-list-link";
 import { needsFollowUp } from "@/lib/follow-up";
+import {
+  LEAD_TABLE_SORT_COLUMNS,
+  nextSortValue,
+  parseSort,
+  sortHeaderHref,
+  type LeadsSearchParams,
+  type SortKey,
+} from "@/lib/sort";
 import type { Lead } from "@/lib/types";
 import { cn, formatDate } from "@/lib/utils";
 
+function SortHeader({
+  column,
+  label,
+  query,
+}: {
+  column: SortKey;
+  label: string;
+  query: LeadsSearchParams;
+}) {
+  const current = parseSort(query.sort);
+  const active = current.key === column;
+  const href = sortHeaderHref(query, column);
+  const ariaSort = active ? (current.dir === "asc" ? "ascending" : "descending") : "none";
+  const nextDir = parseSort(nextSortValue(query.sort, column)).dir;
+  const nextHint = nextDir === "asc" ? "סדר עולה" : "סדר יורד";
+  const currentHint = current.dir === "asc" ? "סדר עולה" : "סדר יורד";
+
+  return (
+    <th className="p-0 font-medium" scope="col" aria-sort={ariaSort}>
+      <Link
+        href={href}
+        scroll={false}
+        className={cn(
+          "inline-flex w-full items-center gap-1 whitespace-nowrap px-3 py-2 hover:text-foreground",
+          active && "text-foreground",
+        )}
+        title={`${label} — ${nextHint}`}
+        aria-label={
+          active ? `מיון לפי ${label}, ${currentHint}. לחצו ל${nextHint}` : `מיון לפי ${label}`
+        }
+      >
+        <span>{label}</span>
+        {active ? (
+          <span className="text-[0.65rem] leading-none text-foreground" aria-hidden="true">
+            {current.dir === "asc" ? "▲" : "▼"}
+          </span>
+        ) : null}
+      </Link>
+    </th>
+  );
+}
+
 export function LeadsTable({
   leads,
+  query,
   whatsappTemplateBody,
 }: {
   leads: Lead[];
+  query: LeadsSearchParams;
   whatsappTemplateBody?: string | null;
 }) {
   if (leads.length === 0) {
@@ -33,16 +85,9 @@ export function LeadsTable({
       <table className="min-w-full text-right text-sm">
         <thead className="border-b border-border bg-background/70 text-muted">
           <tr>
-            <th className="px-3 py-2 font-medium">שם</th>
-            <th className="px-3 py-2 font-medium">קטגוריה</th>
-            <th className="px-3 py-2 font-medium">סוג</th>
-            <th className="px-3 py-2 font-medium">פיגור</th>
-            <th className="px-3 py-2 font-medium">סטטוס תקשורת</th>
-            <th className="px-3 py-2 font-medium">סטטוס עסקי</th>
-            <th className="px-3 py-2 font-medium">ערוץ</th>
-            <th className="px-3 py-2 font-medium">מעקב</th>
-            <th className="px-3 py-2 font-medium">מייל</th>
-            <th className="px-3 py-2 font-medium">נמצא</th>
+            {LEAD_TABLE_SORT_COLUMNS.map((column) => (
+              <SortHeader key={column.key} column={column.key} label={column.label} query={query} />
+            ))}
           </tr>
         </thead>
         <tbody>
