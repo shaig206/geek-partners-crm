@@ -8,7 +8,7 @@ import type { ActionResult } from "@/lib/types";
 const initial: ActionResult | null = null;
 
 const inputClass =
-  "mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none ring-brand focus:ring-2";
+  "mt-1.5 w-full rounded-lg border border-border bg-inset px-3.5 py-2.5 text-sm text-foreground outline-none ring-brand transition-shadow placeholder:text-muted/80 focus:border-brand focus:ring-2";
 
 export function WorkshopForm() {
   const [state, action, pending] = useActionState(registerWorkshop, initial);
@@ -20,19 +20,19 @@ export function WorkshopForm() {
   if (state?.ok === true) {
     return (
       <div
-        className="rounded-xl bg-brand-soft px-4 py-5 text-brand-dark"
+        className="rounded-xl border border-brand/20 bg-brand-soft px-4 py-5 text-brand-dark"
         role="status"
         aria-live="polite"
       >
-        <p className="text-lg font-semibold">{WORKSHOP_THANKS_TITLE}</p>
-        <p className="mt-2 text-sm leading-6">{WORKSHOP_THANKS_BODY}</p>
+        <p className="text-lg font-semibold text-foreground">{WORKSHOP_THANKS_TITLE}</p>
+        <p className="mt-2 text-sm leading-6 text-secondary">{WORKSHOP_THANKS_BODY}</p>
       </div>
     );
   }
 
   return (
     <form action={action} className="space-y-4">
-      <label className="block text-sm font-medium">
+      <label className="block text-sm font-medium text-foreground">
         שם מלא
         <input
           name="contact_name"
@@ -44,7 +44,7 @@ export function WorkshopForm() {
           className={inputClass}
         />
       </label>
-      <label className="block text-sm font-medium">
+      <label className="block text-sm font-medium text-foreground">
         שם העסק
         <input
           name="business_name"
@@ -56,7 +56,7 @@ export function WorkshopForm() {
         />
       </label>
       <div className="grid gap-4 sm:grid-cols-2">
-        <label className="block text-sm font-medium">
+        <label className="block text-sm font-medium text-foreground">
           מייל
           <input
             name="email"
@@ -69,7 +69,7 @@ export function WorkshopForm() {
             placeholder="name@business.com"
           />
         </label>
-        <label className="block text-sm font-medium">
+        <label className="block text-sm font-medium text-foreground">
           וואטסאפ / טלפון
           <input
             name="phone"
@@ -95,7 +95,7 @@ export function WorkshopForm() {
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded-lg bg-brand px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60"
+        className="workshop-cta-glow w-full rounded-lg bg-brand px-4 py-3 text-sm font-semibold text-white hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60 disabled:shadow-none"
       >
         {pending ? "שולחים…" : "הרשמה לסדנה"}
       </button>
