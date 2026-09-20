@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { registerWorkshop } from "@/app/actions/workshop";
 import { WORKSHOP_THANKS_BODY, WORKSHOP_THANKS_TITLE } from "@/lib/workshop";
 import type { ActionResult } from "@/lib/types";
@@ -12,6 +12,10 @@ const inputClass =
 
 export function WorkshopForm() {
   const [state, action, pending] = useActionState(registerWorkshop, initial);
+  const [contactName, setContactName] = useState("");
+  const [businessName, setBusinessName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
 
   if (state?.ok === true) {
     return (
@@ -35,6 +39,8 @@ export function WorkshopForm() {
           type="text"
           required
           autoComplete="name"
+          value={contactName}
+          onChange={(event) => setContactName(event.target.value)}
           className={inputClass}
         />
       </label>
@@ -44,6 +50,8 @@ export function WorkshopForm() {
           name="business_name"
           type="text"
           autoComplete="organization"
+          value={businessName}
+          onChange={(event) => setBusinessName(event.target.value)}
           className={inputClass}
         />
       </label>
@@ -55,6 +63,8 @@ export function WorkshopForm() {
             type="email"
             autoComplete="email"
             dir="ltr"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
             className={inputClass}
             placeholder="name@business.com"
           />
@@ -67,6 +77,8 @@ export function WorkshopForm() {
             autoComplete="tel"
             dir="ltr"
             inputMode="tel"
+            value={phone}
+            onChange={(event) => setPhone(event.target.value)}
             className={inputClass}
             placeholder="050-0000000"
           />
