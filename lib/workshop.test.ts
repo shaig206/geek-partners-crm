@@ -47,7 +47,7 @@ test("buildWorkshopLead prefers business name and tags the row as a workshop sig
     email: "noea@example.com",
     phone: "0521112233",
     city: WORKSHOP_CITY,
-    status: "חדש",
+    status: "new",
     business_status: "חדש",
     business_type: null,
     category: WORKSHOP_CATEGORY,

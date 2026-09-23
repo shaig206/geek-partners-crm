@@ -1,18 +1,21 @@
 import {
   BUSINESS_STATUSES,
   BUSINESS_TYPES,
-  LEAD_STATUSES,
+  LEAD_STATUS_LABELS,
   type BusinessStatus,
   type LeadStatus,
 } from "@/lib/constants";
+import { leadStatusLabel, pipelineStatusFromLegacy } from "@/lib/lead-status";
 import { CHANNEL_BUCKET_LABELS, hasEmail, hasWhatsApp } from "@/lib/channels";
 import { cn } from "@/lib/utils";
 
 const COMMUNICATION_STYLES: Record<LeadStatus, string> = {
-  חדש: "bg-slate-100 text-slate-700",
-  "נשלחה הודעה": "bg-brand-soft text-brand-dark",
-  "אין מענה פעם אחת": "bg-orange-50 text-orange-800",
-  "אין מענה פעמיים": "bg-orange-100 text-orange-900",
+  new: "bg-slate-100 text-slate-700",
+  contacted: "bg-brand-soft text-brand-dark",
+  in_conversation: "bg-violet-50 text-violet-800",
+  follow_up_scheduled: "bg-amber-50 text-amber-900",
+  not_relevant: "bg-slate-200 text-slate-500",
+  converted: "bg-success-soft text-success-dark",
 };
 
 const BUSINESS_STYLES: Record<BusinessStatus, string> = {
@@ -25,16 +28,16 @@ const BUSINESS_STYLES: Record<BusinessStatus, string> = {
 };
 
 export function StatusBadge({ status }: { status: string }) {
-  const known = (LEAD_STATUSES as readonly string[]).includes(status);
+  const mapped = pipelineStatusFromLegacy({ status }).status;
   return (
     <span
       className={cn(
         "inline-flex rounded-full px-2 py-0.5 text-xs font-medium",
-        known ? COMMUNICATION_STYLES[status as LeadStatus] : "bg-slate-100 text-slate-700",
+        COMMUNICATION_STYLES[mapped],
       )}
-      title="סטטוס תקשורת"
+      title={LEAD_STATUS_LABELS[mapped]}
     >
-      {status}
+      {leadStatusLabel(status)}
     </span>
   );
 }

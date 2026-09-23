@@ -3,6 +3,13 @@ import { FOLLOW_UP_WAITING_STATUSES } from "@/lib/constants";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { extractEmail } from "@/lib/utils";
 
+const REPLIED_FROM_STATUSES = [
+  ...FOLLOW_UP_WAITING_STATUSES,
+  "נשלחה הודעה",
+  "אין מענה פעם אחת",
+  "אין מענה פעמיים",
+] as const;
+
 export const runtime = "nodejs";
 
 type InboundPayload = {
@@ -26,7 +33,11 @@ function shouldNudgeBusiness(
   communicationStatus: string | null | undefined,
 ) {
   if (businessStatus !== "חדש") return false;
-  return (FOLLOW_UP_WAITING_STATUSES as readonly string[]).includes(communicationStatus ?? "");
+  return (REPLIED_FROM_STATUSES as readonly string[]).includes(communicationStatus ?? "");
+}
+
+function shouldAdvancePipeline(communicationStatus: string | null | undefined) {
+  return (REPLIED_FROM_STATUSES as readonly string[]).includes(communicationStatus ?? "");
 }
 
 export async function GET() {
@@ -86,6 +97,23 @@ export async function POST(request: Request) {
           }
         } else {
           note = "matched_no_nudge";
+        }
+
+        if (shouldAdvancePipeline(lead.status) && lead.status !== "in_conversation") {
+          const { error } = await admin
+            .from("leads")
+            .update({ status: "in_conversation", not_relevant_reason: null })
+            .eq("id", lead.id);
+          if (!error) {
+            newStatus = "in_conversation";
+            note = note === "matched_no_nudge" ? "matched_and_advanced_pipeline" : `${note}_and_advanced`;
+            await admin.from("lead_notes").insert({
+              lead_id: lead.id,
+              body: "התקבלה תגובה במייל. הסטטוס עודכן לבשיחה.",
+              author_email: "inbound@localhost",
+              author_name: "מערכת",
+            });
+          }
         }
       } else {
         note = "no_matching_lead";

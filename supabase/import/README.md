@@ -16,7 +16,7 @@ Paste rows into `insert into public.leads (...) values (...);` using the same co
 ```sql
 insert into public.leads (name, city, business_type, lag_score, status, business_status, email)
 select * from (values
-  ('עסק חדש', 'פרדס חנה-כרכור', 'B2C', 4, 'חדש', 'חדש', 'new@example.com')
+  ('עסק חדש', 'פרדס חנה-כרכור', 'B2C', 4, 'new', 'חדש', 'new@example.com')
 ) as incoming(name, city, business_type, lag_score, status, business_status, email)
 where not exists (
   select 1 from public.leads l where l.name = incoming.name
@@ -31,7 +31,9 @@ From a machine that can reach the database:
 psql "$DATABASE_URL" -c "\copy public.leads(name,website,category,city,business_type,size_signal,lag_score,why_lagging,peer_gap,phone,email,contact_name,status,business_status,warming_notes,source_url,priority,found_at) from 'supabase/import/leads.example.csv' csv header"
 ```
 
-`status` (סטטוס תקשורת) must be one of: חדש | נשלחה הודעה | אין מענה פעם אחת | אין מענה פעמיים  
+`status` (pipeline, stable keys) must be one of: `new` | `contacted` | `in_conversation` | `follow_up_scheduled` | `not_relevant` | `converted`  
+Hebrew labels in the app: חדש · נוצר קשר · בשיחה · נקבע מעקב · לא רלוונטי · הומר.  
+`not_relevant_reason`, when set, must be `closed` | `no_fit` | `wrong_area` | `unreachable` and only with status `not_relevant`.  
 
 `business_status` (סטטוס עסקי) must be one of: חדש | רלוונטי | בפגישה או שיחה | הצעה נשלחה | זכייה | לא רלוונטי  
 

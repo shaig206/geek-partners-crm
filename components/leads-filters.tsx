@@ -6,6 +6,7 @@ import {
   BUSINESS_TYPES,
   LAG_SCORES,
   LEAD_STATUSES,
+  LEAD_STATUS_LABELS,
   SORT_OPTIONS,
 } from "@/lib/constants";
 import { CHANNEL_BUCKETS, CHANNEL_BUCKET_LABELS } from "@/lib/channels";
@@ -54,7 +55,7 @@ export function LeadsFilters() {
         />
       </label>
       <label className="text-sm">
-        סטטוס תקשורת
+        סטטוס
         <select
           name="status"
           defaultValue={searchParams.get("status") ?? ""}
@@ -63,7 +64,7 @@ export function LeadsFilters() {
           <option value="">הכול</option>
           {LEAD_STATUSES.map((status) => (
             <option key={status} value={status}>
-              {status}
+              {LEAD_STATUS_LABELS[status]}
             </option>
           ))}
         </select>
