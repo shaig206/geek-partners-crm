@@ -44,7 +44,7 @@ export type WorkshopLeadPayload = {
   email: string | null;
   phone: string | null;
   city: string;
-  status: "חדש";
+  status: "new";
   business_status: "חדש";
   business_type: null;
   category: string;
@@ -124,7 +124,7 @@ export function buildWorkshopLead(
       email,
       phone,
       city: WORKSHOP_CITY,
-      status: "חדש",
+      status: "new",
       business_status: "חדש",
       business_type: null,
       category: WORKSHOP_CATEGORY,

@@ -71,7 +71,7 @@ export const LEAD_TABLE_SORT_COLUMNS = [
   { key: "category", label: "קטגוריה" },
   { key: "type", label: "סוג" },
   { key: "lag", label: "פיגור" },
-  { key: "status", label: "סטטוס תקשורת" },
+  { key: "status", label: "סטטוס" },
   { key: "business_status", label: "סטטוס עסקי" },
   { key: "channel", label: "ערוץ" },
   { key: "follow_up", label: "מעקב" },

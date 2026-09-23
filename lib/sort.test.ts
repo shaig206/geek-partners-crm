@@ -23,7 +23,8 @@ function lead(partial: Partial<Lead> & Pick<Lead, "id" | "name">): Lead {
     phone: null,
     email: null,
     contact_name: null,
-    status: "חדש",
+    status: "new",
+    not_relevant_reason: null,
     business_status: "חדש",
     warming_notes: null,
     source_url: null,
@@ -31,6 +32,7 @@ function lead(partial: Partial<Lead> & Pick<Lead, "id" | "name">): Lead {
     found_at: "2026-01-01T00:00:00.000Z",
     last_contacted_at: null,
     follow_up_at: null,
+    last_touched_at: null,
     created_at: "2026-01-01T00:00:00.000Z",
     updated_at: "2026-01-01T00:00:00.000Z",
     ...partial,
@@ -74,7 +76,7 @@ test("sortHeaderHref preserves other filters and replaces sort", () => {
   const href = sortHeaderHref(
     {
       q: "מאפייה",
-      status: "חדש",
+      status: "new",
       business_status: "רלוונטי",
       channel: "whatsapp",
       type: "B2C",
@@ -87,7 +89,7 @@ test("sortHeaderHref preserves other filters and replaces sort", () => {
   const params = new URLSearchParams(href.replace("/leads?", ""));
   assert.equal(href.startsWith("/leads?"), true);
   assert.equal(params.get("q"), "מאפייה");
-  assert.equal(params.get("status"), "חדש");
+  assert.equal(params.get("status"), "new");
   assert.equal(params.get("business_status"), "רלוונטי");
   assert.equal(params.get("channel"), "whatsapp");
   assert.equal(params.get("type"), "B2C");
@@ -139,12 +141,12 @@ test("channel sort uses filter bucket order whatsapp / email / both / none", () 
 });
 
 test("status and business_status sort follow workflow order, not alphabet", () => {
-  const fresh = lead({ id: "fresh", name: "a", status: "חדש" });
-  const twice = lead({ id: "twice", name: "b", status: "אין מענה פעמיים" });
-  const sent = lead({ id: "sent", name: "c", status: "נשלחה הודעה" });
+  const fresh = lead({ id: "fresh", name: "a", status: "new" });
+  const closed = lead({ id: "closed", name: "b", status: "not_relevant" });
+  const sent = lead({ id: "sent", name: "c", status: "contacted" });
   assert.deepEqual(
-    sortLeadsList([twice, sent, fresh], "status_asc").map((row) => row.id),
-    ["fresh", "sent", "twice"],
+    sortLeadsList([closed, sent, fresh], "status_asc").map((row) => row.id),
+    ["fresh", "sent", "closed"],
   );
 
   const win = lead({ id: "win", name: "d", business_status: "זכייה" });

@@ -88,7 +88,7 @@ export function isWaitingFollowUpStatus(status: string): boolean {
 
 /**
  * True when follow_up_at falls on today or earlier (Asia/Jerusalem civil date)
- * and the lead is still waiting (communication status נשלחה הודעה / אין מענה).
+ * and the lead is still open (נוצר קשר / נקבע מעקב).
  */
 export function needsFollowUp(
   lead: Pick<Lead, "follow_up_at" | "status">,
@@ -137,8 +137,10 @@ export function markSentPayload(options: {
   const now = options.now ?? new Date();
   return {
     status: MARK_SENT_STATUS,
+    not_relevant_reason: null,
     last_contacted_at: now.toISOString(),
     follow_up_at: computeFollowUpAt(now).toISOString(),
+    last_touched_at: now.toISOString(),
     warming_notes: appendSentNote(options.warmingNotes, options.channel, now),
   };
 }

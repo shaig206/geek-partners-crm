@@ -41,7 +41,7 @@ export function WhatsAppSection({
       )}
       <div className="border-t border-border pt-3">
         <p className="mb-2 text-xs text-muted">
-          אחרי שליחה ידנית — סמנו כאן. סטטוס התקשורת יהיה נשלחה הודעה והמעקב הראשון ייקבע לעוד{" "}
+          אחרי שליחה ידנית — סמנו כאן. הסטטוס יהיה נוצר קשר והמעקב הראשון ייקבע לעוד{" "}
           {FOLLOW_UP_DAYS_AFTER_SEND} ימים.
         </p>
         <MarkLeadSentButton leadId={lead.id} channel="whatsapp" label="סימנתי שנשלח בוואטסאפ" />

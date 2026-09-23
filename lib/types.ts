@@ -2,7 +2,9 @@ import type {
   BusinessStatus,
   BusinessType,
   DraftStatus,
+  LeadDraftKind,
   LeadStatus,
+  NotRelevantReason,
   SendStatus,
   TemplateChannel,
 } from "@/lib/constants";
@@ -22,6 +24,7 @@ export type Lead = {
   email: string | null;
   contact_name: string | null;
   status: LeadStatus;
+  not_relevant_reason: NotRelevantReason | null;
   business_status: BusinessStatus;
   warming_notes: string | null;
   source_url: string | null;
@@ -29,7 +32,26 @@ export type Lead = {
   found_at: string | null;
   last_contacted_at: string | null;
   follow_up_at: string | null;
+  last_touched_at: string | null;
   created_at: string;
+  updated_at: string;
+};
+
+export type LeadNote = {
+  id: string;
+  lead_id: string;
+  body: string;
+  author_email: string;
+  author_name: string;
+  created_at: string;
+};
+
+export type LeadMessageDraft = {
+  lead_id: string;
+  kind: LeadDraftKind;
+  channel: "whatsapp" | "email";
+  subject: string | null;
+  body: string;
   updated_at: string;
 };
 

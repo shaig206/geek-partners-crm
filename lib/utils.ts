@@ -1,5 +1,5 @@
 import type { Lead } from "@/lib/types";
-import { COMPANY, DEFAULT_CITY, OWNER_NAME, OWNER_ROLE } from "@/lib/constants";
+import { COMPANY, CRM_TIMEZONE, DEFAULT_CITY, OWNER_NAME, OWNER_ROLE } from "@/lib/constants";
 
 /** First token of a contact name ("מיכל לוי" → "מיכל"). Missing / blank → null. */
 export function firstNameFromContact(contactName: string | null | undefined): string | null {
@@ -55,6 +55,7 @@ export function formatDate(value: string | null | undefined) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
   return new Intl.DateTimeFormat("he-IL", {
+    timeZone: CRM_TIMEZONE,
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -66,6 +67,7 @@ export function formatDateTime(value: string | null | undefined) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
   return new Intl.DateTimeFormat("he-IL", {
+    timeZone: CRM_TIMEZONE,
     day: "2-digit",
     month: "2-digit",
     year: "numeric",

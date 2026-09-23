@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { Resend } from "resend";
+import { authorFromUser, leadNoteRow, sentActivityNote } from "@/lib/author";
 import { requireUser } from "@/lib/auth";
 import { markSentPayload } from "@/lib/follow-up";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -107,7 +108,7 @@ export async function rejectDraft(draftId: string, formData: FormData): Promise<
  * in the database at claim time. Uses the service role only on the server.
  */
 export async function approveAndSendDraft(draftId: string): Promise<ActionResult> {
-  await requireUser();
+  const { user } = await requireUser();
 
   const admin = createAdminClient();
   const { data: draft, error: loadError } = await admin
@@ -204,6 +205,10 @@ export async function approveAndSendDraft(draftId: string): Promise<ActionResult
       }),
     )
     .eq("id", draft.lead_id);
+
+  await admin.from("lead_notes").insert(
+    leadNoteRow(draft.lead_id, authorFromUser(user), sentActivityNote("email")),
+  );
 
   revalidatePath(`/leads/${draft.lead_id}`);
   revalidatePath("/leads");

@@ -5,6 +5,7 @@ import {
   DEFAULT_CITY,
   LAG_SCORES,
   LEAD_STATUSES,
+  LEAD_STATUS_LABELS,
 } from "@/lib/constants";
 import Link from "next/link";
 
@@ -64,11 +65,11 @@ export default async function NewLeadPage({
             </select>
           </label>
           <label className="text-sm">
-            סטטוס תקשורת
-            <select name="status" defaultValue="חדש" className={inputClass}>
+            סטטוס
+            <select name="status" defaultValue="new" className={inputClass}>
               {LEAD_STATUSES.map((status) => (
                 <option key={status} value={status}>
-                  {status}
+                  {LEAD_STATUS_LABELS[status]}
                 </option>
               ))}
             </select>

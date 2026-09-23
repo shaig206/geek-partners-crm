@@ -23,6 +23,11 @@ function isHttpUrl(value: string | undefined): value is string {
   }
 }
 
+/** True when approve-and-send can call Resend. Keys stay server-side. */
+export function isResendConfigured() {
+  return Boolean(process.env.RESEND_API_KEY?.trim() && process.env.RESEND_FROM_EMAIL?.trim());
+}
+
 export function isSupabaseConfigured() {
   const { url, anonKey } = getSupabasePublicEnv();
   return Boolean(isHttpUrl(url) && anonKey);

@@ -3,10 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
+import { authorFromUser, leadNoteRow, sentActivityNote } from "@/lib/author";
 import {
   BUSINESS_TYPES,
   DEFAULT_CITY,
   FOLLOW_UP_DAYS_AFTER_SEND,
+  LEAD_STATUS_LABELS,
   MARK_SENT_STATUS,
   isBusinessStatus,
   isLeadStatus,
@@ -59,7 +61,7 @@ export async function createLead(formData: FormData) {
     redirect("/leads/new?error=missing_name");
   }
 
-  const status = parseStatus(asString(formData, "status")) ?? "חדש";
+  const status = parseStatus(asString(formData, "status")) ?? "new";
   const businessStatus = parseBusinessStatus(asString(formData, "business_status")) ?? "חדש";
   const payload = {
     name,
@@ -96,9 +98,10 @@ export async function updateLeadContact(
   formData: FormData,
 ): Promise<ActionResult> {
   const { supabase } = await requireUser();
-  const status = parseStatus(asString(formData, "status"));
+  const statusRaw = asString(formData, "status");
   const businessStatus = parseBusinessStatus(asString(formData, "business_status"));
-  if (!status) return { ok: false, error: "סטטוס תקשורת לא תקין" };
+  const status = statusRaw ? parseStatus(statusRaw) : null;
+  if (statusRaw && !status) return { ok: false, error: "סטטוס לא תקין" };
   if (!businessStatus) return { ok: false, error: "סטטוס עסקי לא תקין" };
 
   const { error } = await supabase
@@ -108,7 +111,7 @@ export async function updateLeadContact(
       email: emptyToNull(asString(formData, "email")),
       warming_notes: emptyToNull(asString(formData, "warming_notes")),
       contact_name: emptyToNull(asString(formData, "contact_name")),
-      status,
+      ...(status ? { status } : {}),
       business_status: businessStatus,
     })
     .eq("id", leadId);
@@ -126,9 +129,16 @@ export async function updateLeadStatus(
 ): Promise<ActionResult> {
   const { supabase } = await requireUser();
   const parsed = parseStatus(status);
-  if (!parsed) return { ok: false, error: "סטטוס תקשורת לא תקין" };
+  if (!parsed) return { ok: false, error: "סטטוס לא תקין" };
 
-  const { error } = await supabase.from("leads").update({ status: parsed }).eq("id", leadId);
+  const { error } = await supabase
+    .from("leads")
+    .update(
+      parsed === "not_relevant"
+        ? { status: parsed }
+        : { status: parsed, not_relevant_reason: null },
+    )
+    .eq("id", leadId);
   if (error) return { ok: false, error: error.message };
 
   revalidatePath(`/leads/${leadId}`);
@@ -152,7 +162,7 @@ export async function markLeadSent(
   leadId: string,
   channel?: OutreachChannel,
 ): Promise<ActionResult> {
-  const { supabase } = await requireUser();
+  const { supabase, user } = await requireUser();
   if (!UUID_RE.test(leadId)) return { ok: false, error: "מזהה ליד לא תקין" };
 
   const parsedChannel = parseChannel(channel);
@@ -172,10 +182,17 @@ export async function markLeadSent(
 
   if (error) return { ok: false, error: error.message };
 
+  const { error: noteError } = await supabase
+    .from("lead_notes")
+    .insert(leadNoteRow(leadId, authorFromUser(user), sentActivityNote(parsedChannel)));
+  if (noteError) {
+    return { ok: false, error: `הסטטוס עודכן, אבל ההערה לא נשמרה: ${noteError.message}` };
+  }
+
   revalidatePath(`/leads/${leadId}`);
   revalidatePath("/leads");
   return {
     ok: true,
-    message: `סומן כ${MARK_SENT_STATUS}. מעקב ראשון בעוד ${FOLLOW_UP_DAYS_AFTER_SEND} ימים.`,
+    message: `סומן כ${LEAD_STATUS_LABELS[MARK_SENT_STATUS]}. מעקב ראשון בעוד ${FOLLOW_UP_DAYS_AFTER_SEND} ימים.`,
   };
 }

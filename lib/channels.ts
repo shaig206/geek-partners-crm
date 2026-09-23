@@ -36,10 +36,23 @@ export function normalizeIsraeliPhone(phone: string | null | undefined): string 
   return `0${digits}`;
 }
 
+/** Israeli mobile digits `05xxxxxxxx`, or null when the number is not a 05 mobile. */
+export function israeliMobileDigits(phone: string | null | undefined): string | null {
+  const normalized = normalizeIsraeliPhone(phone);
+  if (!normalized || !/^05\d{8}$/.test(normalized)) return null;
+  return normalized;
+}
+
 /** True iff the phone is an Israeli mobile: 05 + 8 digits after normalization. */
 export function hasWhatsApp(phone: string | null | undefined): boolean {
-  const normalized = normalizeIsraeliPhone(phone);
-  return normalized != null && /^05\d{8}$/.test(normalized);
+  return israeliMobileDigits(phone) != null;
+}
+
+/** Display form `052-111-2233` for an Israeli 05 mobile. */
+export function formatIsraeliMobile(phone: string | null | undefined): string | null {
+  const digits = israeliMobileDigits(phone);
+  if (!digits) return null;
+  return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`;
 }
 
 /** True iff email is non-empty after trim. */

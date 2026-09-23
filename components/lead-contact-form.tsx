@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import { updateLeadContact } from "@/app/actions/leads";
-import { BUSINESS_STATUSES, LEAD_STATUSES } from "@/lib/constants";
+import { BUSINESS_STATUSES } from "@/lib/constants";
 import type { ActionResult } from "@/lib/types";
 import type { Lead } from "@/lib/types";
 
@@ -16,17 +16,8 @@ export function LeadContactForm({ lead }: { lead: Lead }) {
 
   return (
     <form action={action} className="space-y-3">
-      <h2 className="text-sm font-semibold">עריכת קשר / הערות / סטטוסים</h2>
-      <label className="block text-sm">
-        סטטוס תקשורת
-        <select name="status" defaultValue={lead.status} className={inputClass}>
-          {LEAD_STATUSES.map((status) => (
-            <option key={status} value={status}>
-              {status}
-            </option>
-          ))}
-        </select>
-      </label>
+      <h2 className="text-sm font-semibold">עריכת פרטי קשר</h2>
+      <p className="text-xs text-muted">סטטוס העבודה מתעדכן בלחיצה בשורה למעלה.</p>
       <label className="block text-sm">
         סטטוס עסקי
         <select

@@ -4,8 +4,9 @@ import { LeadsFilters } from "@/components/leads-filters";
 import { LeadsTable } from "@/components/leads-table";
 import { requireUser } from "@/lib/auth";
 import { channelBucket, isChannelBucket } from "@/lib/channels";
-import { FOLLOW_UP_WAITING_STATUSES, isBusinessStatus, isLeadStatus } from "@/lib/constants";
+import { FOLLOW_UP_WAITING_STATUSES, LEAD_STATUS_LABELS, isBusinessStatus } from "@/lib/constants";
 import { startOfTomorrow } from "@/lib/follow-up";
+import { leadStatusFromQuery } from "@/lib/lead-status";
 import { sortLeadsList } from "@/lib/sort";
 import { pickDefaultTemplate } from "@/lib/templates";
 import type { Lead, OutreachTemplate } from "@/lib/types";
@@ -31,7 +32,8 @@ export default async function LeadsPage({
 
   let query = supabase.from("leads").select("*");
 
-  if (params.status && isLeadStatus(params.status)) query = query.eq("status", params.status);
+  const statusFilter = params.status ? leadStatusFromQuery(params.status) : null;
+  if (statusFilter) query = query.eq("status", statusFilter);
   if (params.business_status && isBusinessStatus(params.business_status)) {
     query = query.eq("business_status", params.business_status);
   }
@@ -49,8 +51,10 @@ export default async function LeadsPage({
   if (params.q?.trim()) {
     const q = params.q.trim().replace(/[%(),]/g, "");
     if (q) {
+      const matchedStatus = leadStatusFromQuery(q);
+      const statusClause = matchedStatus ? `,status.eq.${matchedStatus}` : "";
       query = query.or(
-        `name.ilike.%${q}%,email.ilike.%${q}%,phone.ilike.%${q}%,category.ilike.%${q}%,city.ilike.%${q}%,contact_name.ilike.%${q}%`,
+        `name.ilike.%${q}%,email.ilike.%${q}%,phone.ilike.%${q}%,category.ilike.%${q}%,city.ilike.%${q}%,contact_name.ilike.%${q}%${statusClause}`,
       );
     }
   }
@@ -72,7 +76,7 @@ export default async function LeadsPage({
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">לידים</h1>
-          <p className="mt-1 text-sm text-muted">פרדס חנה-כרכור · חיפוש, סינון, מעקב ומיון</p>
+          <p className="mt-1 text-sm text-muted">פרדס חנה-כרכור · חיפוש וסינון לפי סטטוס, מעקב ומיון</p>
         </div>
         <Link
           href="/leads/new"
@@ -89,11 +93,18 @@ export default async function LeadsPage({
       {error ? (
         <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">{error.message}</p>
       ) : (
-        <LeadsTable
-          leads={leads}
-          query={params}
-          whatsappTemplateBody={whatsappTemplate?.body}
-        />
+        <>
+          {statusFilter ? (
+            <p className="text-sm text-muted">
+              {leads.length} לידים בסטטוס {LEAD_STATUS_LABELS[statusFilter]}
+            </p>
+          ) : null}
+          <LeadsTable
+            leads={leads}
+            query={params}
+            whatsappTemplateBody={whatsappTemplate?.body}
+          />
+        </>
       )}
     </div>
   );

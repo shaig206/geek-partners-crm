@@ -9,13 +9,13 @@ v1 is single-user. Magic-link auth protects CRM pages (`/leads`, `/templates`). 
 ## Features
 
 - Magic-link login (Supabase Auth)
-- Leads list: search, filter by **סטטוס תקשורת** / **סטטוס עסקי** / channel (וואטסאפ · מייל · שניהם · כלום) / B2C|B2B / lag score / **צריך מעקב**, sort (including follow-up soonest)
-- Lead detail card with all fields; edit phone, email, notes, both statuses
-- After sending WhatsApp or email, **סימנתי שנשלח** sets communication status `נשלחה הודעה`, stamps `last_contacted_at`, and schedules `follow_up_at` 3 calendar days later
+- Leads list: search (including Hebrew status words such as בשיחה / הומר), one-click filter by pipeline status (חדש · נוצר קשר · בשיחה · נקבע מעקב · לא רלוונטי · הומר) / **סטטוס עסקי** / channel (וואטסאפ · מייל · שניהם · כלום) / B2C|B2B / lag score / **צריך מעקב**, sort (including follow-up soonest)
+- Lead detail: header (name, category, location, score, WhatsApp, click-to-call), one-click status, last touched, attributed notes, then per-lead email/WhatsApp drafts
+- After sending WhatsApp or email, **סימנתי שנשלח** sets pipeline status `contacted` (נוצר קשר), stamps `last_contacted_at` and `last_touched_at`, and schedules `follow_up_at` 3 calendar days later
 - Compose a Hebrew outreach draft from the lead (default **תבניות** row + lead pinpoints)
 - **תבניות** at `/templates`: create / edit / duplicate / set default / delete Hebrew WhatsApp and email templates (saved in Supabase)
 - WhatsApp Web helper on lead detail (and a light list link): copy a message from the default WhatsApp template and open `wa.me` — no auto-send, needs a usable phone number
-- Approval flow: `draft` → `pending_approval` → **Approve** sends via Resend (server-only) → log send → communication status `נשלחה הודעה` + follow-up in 3 days. Reject with a reason.
+- Approval flow: `draft` → `pending_approval` → **Approve** sends via Resend (server-only) → log send → pipeline status `contacted` (נוצר קשר) + follow-up in 3 days. Reject with a reason.
 - SQL migration + Hebrew sample leads for Pardes Hanna-Karkur, plus a later import path
 - `POST /api/webhooks/resend-inbound` stub for inbound mail (chat notify is external)
 - Public workshop landing at `/workshop` (no login): Hebrew event page, registration form, and a lead row tagged `מקור: הרשמה לסדנה`
@@ -64,10 +64,11 @@ npm run typecheck
    2. [`supabase/migrations/20260917120000_leads_follow_up_at.sql`](supabase/migrations/20260917120000_leads_follow_up_at.sql) — adds `leads.follow_up_at` (nullable `timestamptz`). Safe to re-run (`IF NOT EXISTS`). Does not change `last_contacted_at`.
    3. [`supabase/migrations/20260917180000_leads_status_redesign.sql`](supabase/migrations/20260917180000_leads_status_redesign.sql) — adds `business_status`, migrates old `status` values, tightens communication-status check. **Existing local/dev databases must apply this after pull** (`supabase db push` or paste the SQL).
    4. [`supabase/migrations/20260917200000_outreach_templates.sql`](supabase/migrations/20260917200000_outreach_templates.sql) — `outreach_templates` table, RLS, and one default WhatsApp + one default email template. **After this PR is merged, run `supabase db push`** (or paste the SQL) so templates persist in the product.
+   5. [`supabase/migrations/20260923140000_lead_detail_pipeline.sql`](supabase/migrations/20260923140000_lead_detail_pipeline.sql) — stable pipeline keys on `leads.status`, `not_relevant_reason`, `last_touched_at`, `lead_notes`, and per-lead `lead_message_drafts`. Maps old Hebrew communication statuses (for example `נשלחה הודעה` → `contacted` / נוצר קשר) and copies the previous status plus `warming_notes` into a migration note. **Apply this in the Supabase SQL editor (or `supabase db push`) before using the redesigned lead page.** Safe to re-run.
 5. Run [`supabase/seed.sql`](supabase/seed.sql) for the sample Pardes Hanna-Karkur leads.
 6. Invite / send a magic link to Shai’s email.
 
-RLS: authenticated users have CRUD on `leads`, `email_drafts`, `sends`, and `outreach_templates`. The service role is used only in server code for Resend send + inbound logging (it bypasses RLS). `LOCAL_NO_AUTH=true` uses the service-role client for these tables as well.
+RLS: authenticated users have CRUD on `leads`, `email_drafts`, `sends`, `outreach_templates`, `lead_notes`, and `lead_message_drafts`. The service role is used only in server code for Resend send + inbound logging (it bypasses RLS). `LOCAL_NO_AUTH=true` uses the service-role client for these tables as well.
 
 ### Import more leads later
 
@@ -94,7 +95,7 @@ Nothing in the browser talks to Resend.
    3. **Aborts unless `status` is still `pending_approval`.**
    4. Atomically claims the row (`pending_approval` → `approved`). If zero rows update, it does not send.
    5. Calls Resend with `RESEND_API_KEY` / `RESEND_FROM_EMAIL`.
-   6. Inserts a `sends` row, sets the draft to `sent` or `failed`, and moves the lead communication status to `נשלחה הודעה` with `last_contacted_at` and `follow_up_at` (now + 3 calendar days).
+   6. Inserts a `sends` row, sets the draft to `sent` or `failed`, and moves the lead pipeline status to `contacted` (נוצר קשר) with `last_contacted_at`, `last_touched_at`, and `follow_up_at` (now + 3 calendar days).
 
 If the Resend key is missing, approval returns a Hebrew error and does not pretend to send.
 
@@ -123,14 +124,14 @@ WhatsApp and email are sent outside the “mark sent” click (WhatsApp Web, Res
 
 1. On the lead, click **סימנתי שנשלח בוואטסאפ** or **סימנתי שנשלח במייל**.
 2. Server action `markLeadSent` (also used after Resend approve-and-send):
-   - `status` (סטטוס תקשורת) → `נשלחה הודעה`
+   - `status` → `contacted` (נוצר קשר)
    - `last_contacted_at` → now
    - `follow_up_at` → now + **3 calendar days** (`FOLLOW_UP_DAYS_AFTER_SEND` in `lib/constants.ts`). Calendar days here means the UTC date is advanced by 3, keeping the same clock time. This is not business-day skipping.
    - `warming_notes` gets a short Hebrew line such as `סומן כנשלח בוואטסאפ (17.09.2026)`.
 3. The lead card shows **מעקב הבא** when `follow_up_at` is set.
-4. Later, edit **סטטוס תקשורת** (`אין מענה פעם אחת` / `אין מענה פעמיים`) and **סטטוס עסקי** (`רלוונטי` / `בפגישה או שיחה` / `הצעה נשלחה` / `זכייה` / `לא רלוונטי`) in the contact form.
+4. Later, flip the lead status on the detail page (חדש / נוצר קשר / בשיחה / נקבע מעקב / לא רלוונטי / הומר). **סטטוס עסקי** stays editable on the card.
 
-**צריך מעקב** on the list (badge + filter) when `follow_up_at` is today or earlier in `Asia/Jerusalem` and communication status is still `נשלחה הודעה`, `אין מענה פעם אחת`, or `אין מענה פעמיים`. Sort option **מעקב מוקדם תחילה** orders by `follow_up_at` ascending (nulls last).
+**צריך מעקב** on the list (badge + filter) when `follow_up_at` is today or earlier in `Asia/Jerusalem` and status is still `contacted` or `follow_up_scheduled`. Sort option **מעקב מוקדם תחילה** orders by `follow_up_at` ascending (nulls last).
 
 `LOCAL_NO_AUTH=true` still works for this flow; `markLeadSent` goes through `requireUser()`.
 
@@ -142,7 +143,7 @@ WhatsApp and email are sent outside the “mark sent” click (WhatsApp Web, Res
 https://YOUR_DOMAIN/api/webhooks/resend-inbound
 ```
 
-It accepts a JSON payload, matches a lead by `from` email when possible, nudges **סטטוס עסקי** toward `רלוונטי` if it is still `חדש` and communication status is `נשלחה הודעה` / `אין מענה פעם אחת` / `אין מענה פעמיים`, and logs to `inbound_events`.
+It accepts a JSON payload, matches a lead by `from` email when possible, nudges **סטטוס עסקי** toward `רלוונטי` if it is still `חדש` and the pipeline is `contacted` / `follow_up_scheduled` (or a legacy waiting status), moves that pipeline status to `in_conversation` when the new check allows it, and logs to `inbound_events`.
 
 **Chat notify is external.** Hook Slack, WhatsApp, or a Cursor/chat bot on `inbound_events` (or a database webhook) outside this app.
 
@@ -157,7 +158,7 @@ On submit, a server action inserts a `leads` row with the **service role** (so i
 - `name` = business name, or the person if business is blank (`contact_name` is always the registrant)
 - `email` / `phone` from the form — at least one is required
 - `city` = פרדס חנה-כרכור
-- `status` / `business_status` = `חדש`
+- `status` = `new`, `business_status` = `חדש`
 - `business_type` = null
 - `category` = `סדנה`
 - `source_url` = `/workshop`
@@ -178,7 +179,9 @@ On submit, a server action inserts a `leads` row with the **service role** (so i
 
 Two independent fields:
 
-**סטטוס תקשורת** (`leads.status`): `חדש` · `נשלחה הודעה` · `אין מענה פעם אחת` · `אין מענה פעמיים`
+**סטטוס** (`leads.status`, stable keys, Hebrew labels in the UI): `new` חדש · `contacted` נוצר קשר · `in_conversation` בשיחה · `follow_up_scheduled` נקבע מעקב · `not_relevant` לא רלוונטי (reason `closed` נסגר / `no_fit` לא מתאים / `wrong_area` אזור לא נכון / `unreachable` אין מענה) · `converted` הומר.
+
+**נגיעה אחרונה** (`leads.last_touched_at`) updates on a status change or a new `lead_notes` row.
 
 **סטטוס עסקי** (`leads.business_status`): `חדש` · `רלוונטי` · `בפגישה או שיחה` · `הצעה נשלחה` · `זכייה` · `לא רלוונטי`
 

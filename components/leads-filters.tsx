@@ -6,14 +6,18 @@ import {
   BUSINESS_TYPES,
   LAG_SCORES,
   LEAD_STATUSES,
+  LEAD_STATUS_LABELS,
   SORT_OPTIONS,
 } from "@/lib/constants";
 import { CHANNEL_BUCKETS, CHANNEL_BUCKET_LABELS } from "@/lib/channels";
+import { leadStatusFromQuery } from "@/lib/lead-status";
 
 export function LeadsFilters() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+
+  const selectedStatus = leadStatusFromQuery(searchParams.get("status") ?? "");
 
   function update(next: Record<string, string>) {
     const params = new URLSearchParams(searchParams.toString());
@@ -44,29 +48,38 @@ export function LeadsFilters() {
         });
       }}
     >
+      <div className="sm:col-span-2 lg:col-span-4">
+        <p className="text-sm" id="lead-status-filter-label">
+          סטטוס
+        </p>
+        <input type="hidden" name="status" value={selectedStatus ?? ""} />
+        <div
+          className="mt-1 flex flex-wrap gap-2"
+          role="group"
+          aria-labelledby="lead-status-filter-label"
+        >
+          <StatusChip pressed={!selectedStatus} onClick={() => update({ status: "" })}>
+            הכול
+          </StatusChip>
+          {LEAD_STATUSES.map((status) => (
+            <StatusChip
+              key={status}
+              pressed={selectedStatus === status}
+              onClick={() => update({ status: selectedStatus === status ? "" : status })}
+            >
+              {LEAD_STATUS_LABELS[status]}
+            </StatusChip>
+          ))}
+        </div>
+      </div>
       <label className="text-sm lg:col-span-2">
         חיפוש
         <input
           name="q"
           defaultValue={searchParams.get("q") ?? ""}
-          placeholder="שם, מייל, טלפון, קטגוריה"
+          placeholder="שם, מייל, טלפון, קטגוריה או סטטוס (בשיחה, הומר…)"
           className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
         />
-      </label>
-      <label className="text-sm">
-        סטטוס תקשורת
-        <select
-          name="status"
-          defaultValue={searchParams.get("status") ?? ""}
-          className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
-        >
-          <option value="">הכול</option>
-          {LEAD_STATUSES.map((status) => (
-            <option key={status} value={status}>
-              {status}
-            </option>
-          ))}
-        </select>
       </label>
       <label className="text-sm">
         סטטוס עסקי
@@ -171,5 +184,30 @@ export function LeadsFilters() {
         </button>
       </div>
     </form>
+  );
+}
+
+function StatusChip({
+  pressed,
+  onClick,
+  children,
+}: {
+  pressed: boolean;
+  onClick: () => void;
+  children: string;
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={pressed}
+      onClick={onClick}
+      className={
+        pressed
+          ? "rounded-full border border-brand bg-brand px-3 py-1.5 text-sm font-medium text-white"
+          : "rounded-full border border-border bg-background px-3 py-1.5 text-sm font-medium hover:bg-brand-soft"
+      }
+    >
+      {children}
+    </button>
   );
 }
