@@ -1,4 +1,5 @@
 import {
+  LEAD_STATUSES,
   LEAD_STATUS_LABELS,
   NOT_RELEVANT_REASON_LABELS,
   isLeadStatus,
@@ -56,6 +57,24 @@ export function pipelineStatusFromLegacy(input: {
     status === "not_relevant" && LEGACY_UNREACHABLE.has(communication) ? "unreachable" : null;
 
   return { status, reason };
+}
+
+/**
+ * Match a leads-list search string to a pipeline status.
+ * Accepts the stable key (`in_conversation`) or the Hebrew label (`בשיחה`),
+ * including a unique fragment such as `קשר` → נוצר קשר.
+ */
+export function leadStatusFromQuery(query: string): LeadStatus | null {
+  const value = query.trim();
+  if (!value) return null;
+  if (isLeadStatus(value)) return value;
+
+  const exact = LEAD_STATUSES.find((status) => LEAD_STATUS_LABELS[status] === value);
+  if (exact) return exact;
+
+  if (value.length < 2) return null;
+  const hits = LEAD_STATUSES.filter((status) => LEAD_STATUS_LABELS[status].includes(value));
+  return hits.length === 1 ? hits[0] : null;
 }
 
 export function leadStatusLabel(status: string): string {

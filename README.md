@@ -9,7 +9,7 @@ v1 is single-user. Magic-link auth protects CRM pages (`/leads`, `/templates`). 
 ## Features
 
 - Magic-link login (Supabase Auth)
-- Leads list: search, filter by **סטטוס תקשורת** / **סטטוס עסקי** / channel (וואטסאפ · מייל · שניהם · כלום) / B2C|B2B / lag score / **צריך מעקב**, sort (including follow-up soonest)
+- Leads list: search (including Hebrew status words such as בשיחה / הומר), one-click filter by pipeline status (חדש · נוצר קשר · בשיחה · נקבע מעקב · לא רלוונטי · הומר) / **סטטוס עסקי** / channel (וואטסאפ · מייל · שניהם · כלום) / B2C|B2B / lag score / **צריך מעקב**, sort (including follow-up soonest)
 - Lead detail: header (name, category, location, score, WhatsApp, click-to-call), one-click status, last touched, attributed notes, then per-lead email/WhatsApp drafts
 - After sending WhatsApp or email, **סימנתי שנשלח** sets pipeline status `contacted` (נוצר קשר), stamps `last_contacted_at` and `last_touched_at`, and schedules `follow_up_at` 3 calendar days later
 - Compose a Hebrew outreach draft from the lead (default **תבניות** row + lead pinpoints)

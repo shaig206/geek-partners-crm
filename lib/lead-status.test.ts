@@ -4,6 +4,7 @@ import { LEAD_STATUS_LABELS } from "./constants.ts";
 import { markSentPayload } from "./follow-up.ts";
 import {
   formatStatusChangeNote,
+  leadStatusFromQuery,
   leadStatusLabel,
   pipelineStatusFromLegacy,
 } from "./lead-status.ts";
@@ -63,6 +64,19 @@ test("status change note is Hebrew and includes the reason", () => {
     }),
     "הסטטוס השתנה מ«נוצר קשר» ל«לא רלוונטי» (אזור לא נכון).",
   );
+});
+
+test("list search matches the new Hebrew statuses and stable keys", () => {
+  assert.equal(leadStatusFromQuery("חדש"), "new");
+  assert.equal(leadStatusFromQuery("נוצר קשר"), "contacted");
+  assert.equal(leadStatusFromQuery("בשיחה"), "in_conversation");
+  assert.equal(leadStatusFromQuery("נקבע מעקב"), "follow_up_scheduled");
+  assert.equal(leadStatusFromQuery("לא רלוונטי"), "not_relevant");
+  assert.equal(leadStatusFromQuery("הומר"), "converted");
+  assert.equal(leadStatusFromQuery("in_conversation"), "in_conversation");
+  assert.equal(leadStatusFromQuery("קשר"), "contacted");
+  assert.equal(leadStatusFromQuery("מאפייה"), null);
+  assert.equal(leadStatusFromQuery(""), null);
 });
 
 test("mark sent clears a not-relevant reason and stamps last touch", () => {
